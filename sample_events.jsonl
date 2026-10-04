@@ -1,0 +1,2 @@
+{"timestamp":"2026-10-05T03:20:00+00:00","source":"authentication","event":"login_failure","src_ip":"192.168.1.50","username":"admin","severity":"high","message":"Failed authentication attempt"}
+{"timestamp":"2026-10-05T03:21:00+00:00","source":"authentication","event":"login_success","src_ip":"192.168.1.20","username":"user","severity":"low","message":"Successful login"}

@@ -1,0 +1,6 @@
+Metadata-Version: 2.4
+Name: soc-sentinel
+Version: 0.1.0
+Summary: Security event detection and incident analysis platform
+Requires-Python: >=3.11
+Requires-Dist: pydantic>=2.0
