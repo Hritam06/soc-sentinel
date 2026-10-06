@@ -1,8 +1,7 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from soc_sentinel.core.models import EventSeverity, SecurityEvent
-from soc_sentinel.detection.rules import detect
-from soc_sentinel.detection.rules import detect_alerts
+from soc_sentinel.detection.rules import detect, detect_alerts, detect_password_spray
 
 
 def test_detect_high_severity_login_failure():
@@ -79,3 +78,37 @@ def test_detect_alerts_returns_structured_alert():
 
     assert high_alert.severity == "high"
     assert "authentication failure" in high_alert.message
+
+
+
+def test_detect_password_spray():
+    base = datetime.now(timezone.utc)
+    events = [
+        SecurityEvent(timestamp=base, source="authentication", event_type="login_failure", source_ip="10.0.0.50", username="admin"),
+        SecurityEvent(timestamp=base + timedelta(minutes=1), source="authentication", event_type="login_failure", source_ip="10.0.0.50", username="alice"),
+        SecurityEvent(timestamp=base + timedelta(minutes=2), source="authentication", event_type="login_failure", source_ip="10.0.0.50", username="bob"),
+    ]
+
+    assert detect_password_spray(events) == ["password_spray_attempts"]
+
+
+def test_password_spray_requires_distinct_usernames():
+    base = datetime.now(timezone.utc)
+    events = [
+        SecurityEvent(timestamp=base, source="authentication", event_type="login_failure", source_ip="10.0.0.50", username="admin"),
+        SecurityEvent(timestamp=base + timedelta(minutes=1), source="authentication", event_type="login_failure", source_ip="10.0.0.50", username="admin"),
+        SecurityEvent(timestamp=base + timedelta(minutes=2), source="authentication", event_type="login_failure", source_ip="10.0.0.50", username="admin"),
+    ]
+
+    assert detect_password_spray(events) == []
+
+
+def test_password_spray_respects_time_window():
+    base = datetime.now(timezone.utc)
+    events = [
+        SecurityEvent(timestamp=base, source="authentication", event_type="login_failure", source_ip="10.0.0.50", username="admin"),
+        SecurityEvent(timestamp=base + timedelta(minutes=6), source="authentication", event_type="login_failure", source_ip="10.0.0.50", username="alice"),
+        SecurityEvent(timestamp=base + timedelta(minutes=7), source="authentication", event_type="login_failure", source_ip="10.0.0.50", username="bob"),
+    ]
+
+    assert detect_password_spray(events) == []

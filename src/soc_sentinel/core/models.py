@@ -14,11 +14,19 @@ class EventSeverity(str, Enum):
 class SecurityEvent(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
+    event_id: str | None = Field(default=None, min_length=1)
     timestamp: datetime
     source: str = Field(min_length=1)
     event_type: str = Field(min_length=1)
     source_ip: str | None = None
     destination_ip: str | None = None
+    source_port: int | None = Field(default=None, ge=0, le=65535)
+    destination_port: int | None = Field(default=None, ge=0, le=65535)
+    protocol: str | None = None
     username: str | None = None
+    host: str | None = None
+    process_name: str | None = None
+    action: str | None = None
+    outcome: str | None = None
     severity: EventSeverity = EventSeverity.LOW
     message: str | None = None

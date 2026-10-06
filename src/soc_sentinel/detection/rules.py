@@ -54,6 +54,36 @@ def detect_brute_force(
     return []
 
 
+def detect_password_spray(
+    events: list[SecurityEvent],
+    threshold: int = 3,
+    window_minutes: int = 5,
+) -> list[str]:
+    if not events or threshold < 1 or window_minutes < 1:
+        return []
+
+    events = sorted(events, key=lambda event: event.timestamp)
+
+    for event in events:
+        if event.event_type != "login_failure" or not event.source_ip:
+            continue
+
+        window_end = event.timestamp + timedelta(minutes=window_minutes)
+        matching_usernames = {
+            candidate.username
+            for candidate in events
+            if candidate.event_type == "login_failure"
+            and candidate.source_ip == event.source_ip
+            and candidate.username
+            and event.timestamp <= candidate.timestamp <= window_end
+        }
+
+        if len(matching_usernames) >= threshold:
+            return ["password_spray_attempts"]
+
+    return []
+
+
 from soc_sentinel.detection.models import DetectionAlert
 
 
