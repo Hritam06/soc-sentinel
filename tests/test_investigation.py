@@ -63,3 +63,66 @@ def test_analyze_preserves_event_evidence():
     assert evidence["action"] == "login"
     assert evidence["outcome"] == "failure"
     assert evidence["message"] == "Failed authentication attempt"
+
+
+# Risk scoring regression tests
+import pytest
+
+from soc_sentinel.investigation.analyzer import calculate_risk_score, risk_level
+
+
+@pytest.mark.parametrize(
+    ("severity", "expected"),
+    [
+        (EventSeverity.LOW, 10),
+        (EventSeverity.MEDIUM, 30),
+        (EventSeverity.HIGH, 60),
+        (EventSeverity.CRITICAL, 90),
+    ],
+)
+def test_calculate_risk_score_without_alerts(severity, expected):
+    event = SecurityEvent(
+        timestamp=datetime.now(timezone.utc),
+        source="test",
+        event_type="test_event",
+        severity=severity,
+    )
+    assert calculate_risk_score(event, []) == expected
+
+
+@pytest.mark.parametrize(
+    ("severity", "alert_count", "expected"),
+    [
+        (EventSeverity.LOW, 2, 30),
+        (EventSeverity.MEDIUM, 1, 40),
+        (EventSeverity.HIGH, 2, 80),
+        (EventSeverity.CRITICAL, 1, 100),
+        (EventSeverity.CRITICAL, 10, 100),
+        (EventSeverity.LOW, 10, 50),
+    ],
+)
+def test_calculate_risk_score_alert_bonus_and_cap(severity, alert_count, expected):
+    event = SecurityEvent(
+        timestamp=datetime.now(timezone.utc),
+        source="test",
+        event_type="test_event",
+        severity=severity,
+    )
+    assert calculate_risk_score(event, ["test_alert"] * alert_count) == expected
+
+
+@pytest.mark.parametrize(
+    ("score", "expected"),
+    [
+        (0, "low"),
+        (29, "low"),
+        (30, "medium"),
+        (59, "medium"),
+        (60, "high"),
+        (79, "high"),
+        (80, "critical"),
+        (100, "critical"),
+    ],
+)
+def test_risk_level_boundaries(score, expected):
+    assert risk_level(score) == expected

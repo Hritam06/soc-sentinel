@@ -112,3 +112,68 @@ def test_password_spray_respects_time_window():
     ]
 
     assert detect_password_spray(events) == []
+
+
+def test_detect_matches_rule_names_from_structured_alerts():
+    event = SecurityEvent(
+        timestamp=datetime.now(timezone.utc),
+        source="authentication",
+        event_type="login_failure",
+        source_ip="10.0.0.99",
+        severity=EventSeverity.HIGH,
+    )
+
+    assert detect(event) == [alert.rule for alert in detect_alerts(event)]
+
+
+def test_password_spray_includes_exact_window_boundary():
+    base = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    events = [
+        SecurityEvent(
+            timestamp=base + timedelta(minutes=offset),
+            source="authentication",
+            event_type="login_failure",
+            source_ip="192.168.1.50",
+            username=username,
+            severity=EventSeverity.HIGH,
+        )
+        for offset, username in ((0, "admin"), (2, "alice"), (5, "bob"))
+    ]
+
+    assert detect_password_spray(events, threshold=3, window_minutes=5) == [
+        "password_spray_attempts"
+    ]
+
+
+def test_password_spray_handles_unsorted_events():
+    base = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    events = [
+        SecurityEvent(
+            timestamp=base + timedelta(minutes=offset),
+            source="authentication",
+            event_type="login_failure",
+            source_ip="192.168.1.50",
+            username=username,
+        )
+        for offset, username in ((2, "bob"), (0, "admin"), (1, "alice"))
+    ]
+
+    assert detect_password_spray(events, threshold=3, window_minutes=5) == [
+        "password_spray_attempts"
+    ]
+
+
+def test_password_spray_ignores_missing_usernames():
+    base = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    events = [
+        SecurityEvent(
+            timestamp=base + timedelta(minutes=offset),
+            source="authentication",
+            event_type="login_failure",
+            source_ip="192.168.1.50",
+            username=username,
+        )
+        for offset, username in ((0, "admin"), (1, None), (2, None))
+    ]
+
+    assert detect_password_spray(events, threshold=3, window_minutes=5) == []

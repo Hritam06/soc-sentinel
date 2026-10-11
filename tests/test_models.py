@@ -100,3 +100,44 @@ def test_security_event_converts_blank_optional_identifiers_to_none():
     assert event.username is None
     assert event.host is None
     assert event.process_name is None
+
+
+@pytest.mark.parametrize("port_field", ["source_port", "destination_port"])
+@pytest.mark.parametrize("port", [0, 65535])
+def test_security_event_accepts_valid_port_boundaries(port_field, port):
+    event = SecurityEvent(
+        timestamp=datetime.now(timezone.utc),
+        source="network",
+        event_type="connection_attempt",
+        **{port_field: port},
+    )
+
+    assert getattr(event, port_field) == port
+
+
+@pytest.mark.parametrize("port_field", ["source_port", "destination_port"])
+@pytest.mark.parametrize("port", [-1, 65536])
+def test_security_event_rejects_invalid_port_boundaries(port_field, port):
+    with pytest.raises(ValueError):
+        SecurityEvent(
+            timestamp=datetime.now(timezone.utc),
+            source="network",
+            event_type="connection_attempt",
+            **{port_field: port},
+        )
+
+
+@pytest.mark.parametrize(
+    "missing_field",
+    ["timestamp", "source", "event_type"],
+)
+def test_security_event_requires_core_fields(missing_field):
+    data = {
+        "timestamp": datetime.now(timezone.utc),
+        "source": "authentication",
+        "event_type": "login_failure",
+    }
+    del data[missing_field]
+
+    with pytest.raises(ValueError):
+        SecurityEvent(**data)

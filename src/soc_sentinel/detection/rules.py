@@ -10,18 +10,8 @@ SUSPICIOUS_IPS = {
 
 
 def detect(event: SecurityEvent) -> list[str]:
-    alerts: list[str] = []
-
-    if event.event_type == "login_failure" and event.severity in {
-        EventSeverity.HIGH,
-        EventSeverity.CRITICAL,
-    }:
-        alerts.append("high_severity_login_failure")
-
-    if event.source_ip in SUSPICIOUS_IPS:
-        alerts.append("suspicious_source_ip")
-
-    return alerts
+    """Return rule names while preserving the legacy detection interface."""
+    return [alert.rule for alert in detect_alerts(event)]
 
 
 def detect_brute_force(

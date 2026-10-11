@@ -32,3 +32,8 @@ data/processed/
 
 # OS / tool files
 *.swp
+
+# Build artifacts
+build/
+dist/
+*.whl

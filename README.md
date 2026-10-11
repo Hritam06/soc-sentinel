@@ -42,7 +42,7 @@ The project follows a workflow covering event ingestion, normalization, detectio
 
 ## Current Capabilities
 
-The `v0.3.0` release includes:
+The current development version includes the following capabilities in the working tree; not all are part of the `v0.3.0` release:
 
 - JSON event ingestion
 - JSON Lines event processing
@@ -72,7 +72,53 @@ Risk scores are mapped by alert severity:
 | High | 75 |
 | Critical | 100 |
 
-These are deterministic severity-based scores, not calibrated probabilities of compromise. The incident report may also display its own risk score; do not assume that every displayed risk score uses the same mapping.
+These alert scores are deterministic severity-based scores, not calibrated probabilities of compromise.
+
+### Investigation Risk Score
+
+The investigation report uses a separate contextual score:
+
+- Base score by event severity: Low = 10, Medium = 30, High = 60, Critical = 90.
+- Each detected alert adds 10 points, up to a maximum alert bonus of 40.
+- The final score is capped at 100.
+
+The investigation risk label is derived from the final score:
+
+| Score | Risk level |
+|---|---|
+| 0–29 | Low |
+| 30–59 | Medium |
+| 60–79 | High |
+| 80–100 | Critical |
+
+Alert risk scores and investigation risk scores serve different purposes and use different mappings. Neither score is a calibrated probability of compromise.
+
+
+### Incident Lifecycle
+
+SOC Sentinel includes an in-memory incident lifecycle model. An incident starts
+with the `new` status and supports these transitions:
+
+- `new` → `investigating` or `false_positive`
+- `investigating` → `resolved` or `false_positive`
+- `resolved` and `false_positive` are terminal statuses in the current model.
+
+Invalid transitions are rejected. Incident state is held in memory only; this
+model does not currently provide persistence or CLI integration.
+
+### Event Correlation
+
+The investigation correlation helper groups login-failure events by source IP
+within a configurable, inclusive time window. It supports a configurable
+minimum event threshold and returns structured evidence including the source
+IP, time range, event count, timestamps, usernames, and event IDs when present.
+Groups may overlap when multiple qualifying windows exist.
+
+The helper is available through
+`src/soc_sentinel/investigation/correlation.py`. The CLI includes batch
+correlation evidence in JSON output under `correlations`, alongside event report
+strings in `reports`. Correlation evidence is not currently included in text
+reports or integrated into the incident lifecycle.
 
 ## Example
 
@@ -98,7 +144,7 @@ Run the automated test suite:
 pytest -q
 ```
 
-At the `v0.3.0` release checkpoint, **38 tests passed**.
+At the `v0.3.0` release checkpoint, **38 tests passed**. The latest local verification of the current working tree passed **107 tests**. This is a local result, not a claim that hosted CI has passed.
 
 Run the tests after making changes to check for regressions.
 
@@ -135,6 +181,10 @@ Run the command-line tool:
 soc-sentinel --file sample_event.json
 ```
 
+## Continuous Integration
+
+GitHub Actions is configured to run the test suite on pushes and pull requests using Python 3.11 and 3.12. The workflow has been checked locally for YAML structure; a successful hosted run has not yet been verified.
+
 ## Design Approach
 
 SOC Sentinel is organized into modules with separate responsibilities for event models, ingestion, normalization, detection, investigation, and reporting.
@@ -161,7 +211,9 @@ Potential future improvements include:
 
 ## Version
 
-Current release: `v0.3.0`
+Latest released version: `v0.3.0`
+
+The current working tree prepares the planned `v1.0.0` release. It is not released until the final verification passes and the release tag is published.
 
 GitHub repository: https://github.com/Hritam06/soc-sentinel
 
