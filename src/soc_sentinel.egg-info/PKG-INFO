@@ -152,7 +152,7 @@ Run the automated test suite:
 pytest -q
 ```
 
-At the `v0.3.0` release checkpoint, **38 tests passed**. The latest local verification of the current working tree passed **107 tests**. This is a local result, not a claim that hosted CI has passed.
+At the `v0.3.0` release checkpoint, **38 tests passed**. The latest local verification of the current working tree passed **107 tests**. The hosted GitHub Actions workflow also passed for commit a1bc3c5, with both Python matrix jobs successful.
 
 Run the tests after making changes to check for regressions.
 
@@ -191,7 +191,7 @@ soc-sentinel --file sample_event.json
 
 ## Continuous Integration
 
-GitHub Actions is configured to run the test suite on pushes and pull requests using Python 3.11 and 3.12. The workflow has been checked locally for YAML structure; a successful hosted run has not yet been verified.
+GitHub Actions is configured to run the test suite on pushes and pull requests using Python 3.11 and 3.12. The hosted GitHub Actions workflow passed for commit a1bc3c5, with both Python 3.11 and Python 3.12 matrix jobs successful.
 
 ## Design Approach
 
@@ -219,9 +219,11 @@ Potential future improvements include:
 
 ## Version
 
-Latest released version: `v0.3.0`
+Current package version: `v1.0.0`.
 
-The current working tree prepares the planned `v1.0.0` release. It is not released until the final verification passes and the release tag is published.
+Previous released version: `v0.3.0`.
+
+The v1.0.0 package build and local verification passed, and hosted GitHub Actions passed for commit `a1bc3c5`. The Git release tag and published release are still pending; this section should be updated once the tag is published.
 
 GitHub repository: https://github.com/Hritam06/soc-sentinel
 
