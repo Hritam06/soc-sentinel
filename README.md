@@ -6,7 +6,11 @@ It provides a practical starting point for exploring event validation, normaliza
 
 **Version:** 1.0.0
 
-**Supported Python versions:** 3.11 and 3.12
+**Minimum Python version:** 3.11
+
+**Locally tested with:** Python 3.14.8
+
+**CI-tested versions:** Python 3.11 and 3.12
 
 **Repository:** https://github.com/Hritam06/soc-sentinel
 
