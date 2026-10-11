@@ -29,17 +29,16 @@ def detect_brute_force(
     threshold: int = 3,
     window_minutes: int = 5,
 ) -> list[str]:
-    if not events:
+    if not events or threshold < 1 or window_minutes < 1:
         return []
 
     events = sorted(events, key=lambda event: event.timestamp)
 
     for event in events:
-        if event.event_type != "login_failure":
+        if event.event_type != "login_failure" or not event.source_ip:
             continue
 
         window_end = event.timestamp + timedelta(minutes=window_minutes)
-
         matching_events = [
             candidate
             for candidate in events
