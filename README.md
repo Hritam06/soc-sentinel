@@ -34,7 +34,7 @@ source .venv/bin/activate
 python -m pip install -e .
 ```
 
-Python 3.11 or newer is required. CI tests Python 3.11 and 3.12.
+Python versions beyond those listed above have not yet been verified in this project's test matrix.
 
 ## Usage
 
@@ -57,7 +57,7 @@ Install the test runner and run the suite:
     python -m pip install pytest
     python -m pytest -q
 
-The continuous integration workflow runs the tests on Python 3.11 and 3.12.
+The continuous integration workflow tests Python 3.11 and 3.12.
 
 ## Detection scope and limitations
 
