@@ -1,135 +1,155 @@
 # SOC Sentinel
 
-A practical Security Operations Center (SOC) platform for analyzing security events, detecting suspicious activity, investigating incidents, and producing clear analyst findings.
+A defensive cybersecurity project for analyzing security events, detecting suspicious activity, assessing risk, preserving investigation evidence, and producing incident reports.
 
 ## Overview
 
-SOC Sentinel is a defensive cybersecurity project built around a simple idea: turn raw security events into information that an analyst can actually use.
+SOC Sentinel turns raw security events into structured information that can support security monitoring and investigation.
 
-The project follows a security monitoring workflow that covers event ingestion, normalization, detection, risk assessment, investigation, and reporting.
+The project follows a workflow covering event ingestion, normalization, detection, risk assessment, investigation, and reporting.
 
 ## Objectives
 
-- Collect and analyze security-event data
+- Ingest and validate security events
 - Normalize events into a consistent structure
-- Detect suspicious and potentially malicious activity
-- Develop and test detection rules
-- Assess severity and risk
-- Investigate security incidents
-- Preserve useful evidence for investigation
-- Produce structured incident reports
-- Maintain a tested and reproducible codebase
+- Detect suspicious activity using rules
+- Assess alert severity and risk
+- Preserve investigation evidence
+- Generate incident reports
+- Maintain automated test coverage
 
 ## Security Operations Workflow
 
-SOC Sentinel follows a simple investigation flow:
-
-1. Receive security-event data
-2. Normalize the event into a consistent format
-3. Apply detection rules
-4. Assess severity and risk
-5. Generate alerts
-6. Investigate the activity and collect relevant evidence
-7. Produce a report with the findings and recommended next steps
+1. Ingest security-event data
+2. Normalize event fields
+3. Validate event structure
+4. Apply detection rules
+5. Assess alert severity and risk
+6. Preserve evidence and event references
+7. Review incident findings
 
 ## Project Structure
 
-The project is organized into separate modules so that each part of the security workflow can be developed and tested independently.
-
-- `src/soc_sentinel/core/` contains shared event models and core logic
-- `src/soc_sentinel/detection/` contains detection rules and alert models
-- `src/soc_sentinel/ingestion/` handles incoming security events
-- `src/soc_sentinel/investigation/` handles incident analysis and evidence
-- `src/soc_sentinel/normalization/` prepares events for consistent processing
-- `src/soc_sentinel/reporting/` produces incident reports
-- `tests/` contains the automated test suite
-- `sample_event.json` contains a sample security event
-- `sample_events.jsonl` contains multiple sample events
+- `src/soc_sentinel/core/` — event models and core logic
+- `src/soc_sentinel/detection/` — detection rules, alert models, and risk scoring
+- `src/soc_sentinel/ingestion/` — event ingestion and validation
+- `src/soc_sentinel/investigation/` — investigation and evidence handling
+- `src/soc_sentinel/normalization/` — event normalization and field aliases
+- `src/soc_sentinel/reporting/` — incident reporting
+- `tests/` — automated tests
+- `sample_event.json` — sample security event
+- `sample_events.jsonl` — sample events in JSON Lines format
 
 ## Current Capabilities
 
-The current release, `v0.2.0`, provides:
+The `v0.3.0` release includes:
 
 - JSON event ingestion
 - JSON Lines event processing
-- Event normalization
-- Structured security-event modeling
+- Event normalization using common telemetry field aliases
+- Structured event validation
+- IPv4 and IPv6 address validation
+- Additional structured event metadata
 - Rule-based detection
-- Severity assessment
-- Risk scoring
-- Alert generation
-- Incident investigation
-- Evidence collection from processed events
-- Structured incident reporting
-- Command-line execution
-- Automated testing
+- High-severity login-failure detection
+- Suspicious source-IP detection
+- Brute-force login-attempt detection
+- Password-spray detection
+- Severity-based risk scoring for detection alerts
+- Investigation evidence and event ID fields on alerts
+- Automated tests for event models, normalization, detection, risk scoring, and evidence handling
 
-The event model supports common security-event context such as source and destination IP addresses, ports, protocols, usernames, hosts, processes, actions, outcomes, severity, and event messages.
+The event model supports context such as source and destination IP addresses, ports, protocols, usernames, hosts, processes, actions, outcomes, severity, messages, and additional metadata.
+
+### Alert Risk Scores
+
+Risk scores are mapped by alert severity:
+
+| Severity | Risk score |
+|---|---:|
+| Low | 25 |
+| Medium | 50 |
+| High | 75 |
+| Critical | 100 |
+
+These are deterministic severity-based scores, not calibrated probabilities of compromise. The incident report may also display its own risk score; do not assume that every displayed risk score uses the same mapping.
 
 ## Example
 
-A security event can be processed directly from the command line:
+Process a sample event:
 
-    soc-sentinel --file sample_event.json
+```bash
+soc-sentinel --file sample_event.json
+```
 
-Multiple events can also be processed from a JSON Lines file:
+Process a JSON Lines file:
 
-    soc-sentinel --file sample_events.jsonl --format json
+```bash
+soc-sentinel --file sample_events.jsonl --format json
+```
 
-The processing pipeline takes the event through normalization, detection, risk assessment, investigation, and reporting.
+The report output depends on the event data and the pipeline's implemented functionality.
 
 ## Testing
 
-The project uses `pytest` for automated testing.
+Run the automated test suite:
 
-Run the complete test suite with:
+```bash
+pytest -q
+```
 
-    pytest -q
+At the `v0.3.0` release checkpoint, **38 tests passed**.
 
-The current test suite contains 24 tests covering event models, ingestion, normalization, detection, investigation, reporting, command-line behaviour, and end-to-end processing.
-
-Tests are kept alongside the application code so that changes can be checked before they become part of a release.
+Run the tests after making changes to check for regressions.
 
 ## Development
 
 Create and activate a virtual environment:
 
-    python3 -m venv .venv
-    source .venv/bin/activate
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
 
-Install the project dependencies:
+Install dependencies:
 
-    pip install -r requirements.txt
+```bash
+pip install -r requirements.txt
+```
 
 Install the project in editable mode:
 
-    pip install -e .
+```bash
+pip install -e .
+```
 
 Run the tests:
 
-    pytest -q
+```bash
+pytest -q
+```
 
 Run the command-line tool:
 
-    soc-sentinel --file sample_event.json
+```bash
+soc-sentinel --file sample_event.json
+```
 
 ## Design Approach
 
-SOC Sentinel is built as a modular Python project. Event ingestion, normalization, detection, investigation, and reporting have separate responsibilities.
+SOC Sentinel is organized into modules with separate responsibilities for event models, ingestion, normalization, detection, investigation, and reporting.
 
-This keeps the security workflow easier to test, understand, and extend as new event types and detection logic are added.
+This structure helps keep the security workflow testable and easier to extend.
 
 ## Security Focus
 
 SOC Sentinel is intended for defensive cybersecurity work, security monitoring, incident analysis, and detection engineering.
 
-The sample events are designed for controlled testing and demonstration. They do not represent access to real systems or real security incidents.
+Sample events are intended for controlled testing and demonstration. They do not represent access to real systems or actual security incidents.
 
 ## Roadmap
 
-Future versions will build on the current event-analysis pipeline.
-
-Planned areas include:
+Potential future improvements include:
 
 - Broader security-event coverage
 - Additional detection rules
@@ -141,6 +161,8 @@ Planned areas include:
 
 ## Version
 
-Current release: `v0.2.0`
+Current release: `v0.3.0`
 
-The project is under active development. Each release is kept versioned so that changes to the security-analysis workflow can be tracked clearly.
+GitHub repository: https://github.com/Hritam06/soc-sentinel
+
+The project is under active development. Releases are versioned to make changes to the security-analysis workflow easier to track.
