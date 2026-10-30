@@ -1,70 +1,54 @@
 # SOC Sentinel
 
-SOC Sentinel is a Python security monitoring project that processes security events, identifies suspicious login activity, assigns risk scores, and records evidence for investigation.
+SOC Sentinel is a Python security monitoring project that turns raw security events into structured findings. It validates and normalizes event data, looks for suspicious login activity, assigns risk scores, and collects evidence that helps explain why an alert was raised.
 
-It provides a practical starting point for exploring event validation, normalization, detection rules, correlation, and incident handling in a defensive security workflow.
+The project follows a practical security operations workflow: ingest events, inspect them, identify suspicious patterns, and produce findings that an analyst can review.
 
-**Version:** 1.0.0
+**Current version:** `1.0.0`
 
-**Minimum Python version:** 3.11
-
-**Locally tested with:** Python 3.14.8
-
-**CI-tested versions:** Python 3.11 and 3.12
+**Python:** 3.11 and 3.12
 
 **Repository:** https://github.com/Hritam06/soc-sentinel
 
-## Features
+## What it does
 
-- Read security events from JSON and JSON Lines files.
-- Validate event structure and supported fields.
-- Normalize common telemetry field aliases.
-- Detect high-severity login failures, suspicious source IP addresses, brute-force attempts, and password-spray activity.
-- Assign severity-based alert risk scores.
-- Calculate a separate contextual investigation risk score.
-- Preserve event identifiers and supporting investigation evidence.
-- Correlate login failures by source IP and time window.
-- Track incident status and reject unsupported transitions.
-- Generate command-line reports.
+- **Event ingestion:** Read security events from JSON and JSON Lines files.
+- **Data validation:** Check event structure and supported fields, including IPv4 and IPv6 addresses.
+- **Event normalization:** Map common telemetry field aliases into a consistent event format.
+- **Detection rules:** Identify high-severity login failures, suspicious source IP addresses, brute-force attempts, and password-spray activity.
+- **Alert risk scoring:** Assign a score based on alert severity.
+- **Investigation scoring:** Calculate a separate contextual risk score using event severity and detected alerts.
+- **Evidence collection:** Retain relevant event IDs and investigation details with findings.
+- **Event correlation:** Group login failures by source IP within a configurable time window.
+- **Incident tracking:** Represent incident status and validate permitted status changes.
+- **Command-line reporting:** Process event files and return structured findings.
 
-Detection results depend on the input data and the rules implemented in the project. An alert is a reason to investigate, not proof of compromise.
+Detection results depend on the supplied events and the implemented rules. SOC Sentinel supports analysis and does not replace an analyst's judgment.
 
+## How it works
 
-## Installation
+1. **Ingest:** Load events from a supported file format.
+2. **Validate:** Check the event structure and supported field values.
+3. **Normalize:** Convert recognized field aliases into a consistent representation.
+4. **Detect:** Apply rules to identify suspicious activity.
+5. **Assess:** Calculate alert severity scores and contextual investigation risk.
+6. **Correlate:** Group related login failures and preserve supporting details.
+7. **Review:** Examine the resulting findings and reports.
 
-```bash
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install -e .
-```
+## Project structure
 
-Python versions beyond those listed above have not yet been verified in this project's test matrix.
-
-## Usage
-
-Text report:
-
-    soc-sentinel --file sample_event.json
-
-JSON output:
-
-    soc-sentinel --file sample_event.json --format json
-
-Process JSON Lines input:
-
-    soc-sentinel --file sample_events.jsonl --format json
-
-## Testing
-
-Install the test runner and run the suite:
-
-    python -m pip install pytest
-    python -m pytest -q
-
-The continuous integration workflow tests Python 3.11 and 3.12.
-
-## Detection scope and limitations
-
-Detection rules use the event fields and thresholds implemented in the project. Brute-force and password-spray detection functions are available in the detection module; the CLI also performs login-failure correlation. Suspicious source IP checks use a small configured list, not a continuously updated threat-intelligence feed.
-
-Risk scores help prioritize review; they do not establish that an account or host is compromised. Incident status tracking is in memory and is not persisted between runs. Review alerts and supporting evidence before taking action.
+```text
+soc-sentinel/
+├── src/
+│   └── soc_sentinel/
+│       ├── core/             # Event models and core logic
+│       ├── detection/        # Detection rules, alerts, and risk scoring
+│       ├── ingestion/        # File ingestion and validation
+│       ├── investigation/    # Evidence, correlation, and incident logic
+│       ├── normalization/    # Field aliases and event normalization
+│       └── reporting/        # Report generation
+├── tests/                    # Automated tests
+├── sample_event.json         # Single-event example
+├── sample_events.jsonl       # JSON Lines example
+├── pyproject.toml
+└── README.md
