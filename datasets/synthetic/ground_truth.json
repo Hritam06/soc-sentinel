@@ -1,0 +1,216 @@
+{
+  "dataset_version": "1.0",
+  "description": "Deterministic synthetic SOC Sentinel evaluation dataset.",
+  "limitations": [
+    "Synthetic events do not represent real-world attack prevalence.",
+    "Ground-truth labels describe generated scenarios, not confirmed malicious activity.",
+    "Detection performance on this dataset does not establish production effectiveness."
+  ],
+  "labels": [
+    {
+      "event_id": "auth-brute-0",
+      "ground_truth": "brute_force",
+      "scenario": "brute_force"
+    },
+    {
+      "event_id": "auth-brute-1",
+      "ground_truth": "brute_force",
+      "scenario": "brute_force"
+    },
+    {
+      "event_id": "auth-brute-2",
+      "ground_truth": "brute_force",
+      "scenario": "brute_force"
+    },
+    {
+      "event_id": "auth-brute-3",
+      "ground_truth": "brute_force",
+      "scenario": "brute_force"
+    },
+    {
+      "event_id": "auth-brute-4",
+      "ground_truth": "brute_force",
+      "scenario": "brute_force"
+    },
+    {
+      "event_id": "auth-spray-0",
+      "ground_truth": "password_spray",
+      "scenario": "password_spray"
+    },
+    {
+      "event_id": "auth-spray-1",
+      "ground_truth": "password_spray",
+      "scenario": "password_spray"
+    },
+    {
+      "event_id": "auth-spray-2",
+      "ground_truth": "password_spray",
+      "scenario": "password_spray"
+    },
+    {
+      "event_id": "auth-spray-3",
+      "ground_truth": "password_spray",
+      "scenario": "password_spray"
+    },
+    {
+      "event_id": "auth-success-1",
+      "ground_truth": "failure_then_success",
+      "scenario": "failure_then_success"
+    },
+    {
+      "event_id": "auth-success-2",
+      "ground_truth": "failure_then_success",
+      "scenario": "failure_then_success"
+    },
+    {
+      "event_id": "net-port-0",
+      "ground_truth": "port_scan",
+      "scenario": "port_scan"
+    },
+    {
+      "event_id": "net-port-1",
+      "ground_truth": "port_scan",
+      "scenario": "port_scan"
+    },
+    {
+      "event_id": "net-port-2",
+      "ground_truth": "port_scan",
+      "scenario": "port_scan"
+    },
+    {
+      "event_id": "net-port-3",
+      "ground_truth": "port_scan",
+      "scenario": "port_scan"
+    },
+    {
+      "event_id": "net-port-4",
+      "ground_truth": "port_scan",
+      "scenario": "port_scan"
+    },
+    {
+      "event_id": "net-port-5",
+      "ground_truth": "port_scan",
+      "scenario": "port_scan"
+    },
+    {
+      "event_id": "net-port-6",
+      "ground_truth": "port_scan",
+      "scenario": "port_scan"
+    },
+    {
+      "event_id": "net-port-7",
+      "ground_truth": "port_scan",
+      "scenario": "port_scan"
+    },
+    {
+      "event_id": "net-port-8",
+      "ground_truth": "port_scan",
+      "scenario": "port_scan"
+    },
+    {
+      "event_id": "net-port-9",
+      "ground_truth": "port_scan",
+      "scenario": "port_scan"
+    },
+    {
+      "event_id": "net-port-10",
+      "ground_truth": "port_scan",
+      "scenario": "port_scan"
+    },
+    {
+      "event_id": "net-port-11",
+      "ground_truth": "port_scan",
+      "scenario": "port_scan"
+    },
+    {
+      "event_id": "net-fanout-0",
+      "ground_truth": "connection_fanout",
+      "scenario": "connection_fanout"
+    },
+    {
+      "event_id": "net-fanout-1",
+      "ground_truth": "connection_fanout",
+      "scenario": "connection_fanout"
+    },
+    {
+      "event_id": "net-fanout-2",
+      "ground_truth": "connection_fanout",
+      "scenario": "connection_fanout"
+    },
+    {
+      "event_id": "net-fanout-3",
+      "ground_truth": "connection_fanout",
+      "scenario": "connection_fanout"
+    },
+    {
+      "event_id": "net-fanout-4",
+      "ground_truth": "connection_fanout",
+      "scenario": "connection_fanout"
+    },
+    {
+      "event_id": "net-fanout-5",
+      "ground_truth": "connection_fanout",
+      "scenario": "connection_fanout"
+    },
+    {
+      "event_id": "net-fanout-6",
+      "ground_truth": "connection_fanout",
+      "scenario": "connection_fanout"
+    },
+    {
+      "event_id": "net-fanout-7",
+      "ground_truth": "connection_fanout",
+      "scenario": "connection_fanout"
+    },
+    {
+      "event_id": "net-fanout-8",
+      "ground_truth": "connection_fanout",
+      "scenario": "connection_fanout"
+    },
+    {
+      "event_id": "net-fanout-9",
+      "ground_truth": "connection_fanout",
+      "scenario": "connection_fanout"
+    },
+    {
+      "event_id": "net-fanout-10",
+      "ground_truth": "connection_fanout",
+      "scenario": "connection_fanout"
+    },
+    {
+      "event_id": "net-fanout-11",
+      "ground_truth": "connection_fanout",
+      "scenario": "connection_fanout"
+    },
+    {
+      "event_id": "dns-long-1",
+      "ground_truth": "suspicious_dns",
+      "scenario": "suspicious_dns"
+    },
+    {
+      "event_id": "benign-0",
+      "ground_truth": "benign",
+      "scenario": "benign"
+    },
+    {
+      "event_id": "benign-1",
+      "ground_truth": "benign",
+      "scenario": "benign"
+    },
+    {
+      "event_id": "benign-2",
+      "ground_truth": "benign",
+      "scenario": "benign"
+    },
+    {
+      "event_id": "benign-3",
+      "ground_truth": "benign",
+      "scenario": "benign"
+    },
+    {
+      "event_id": "benign-4",
+      "ground_truth": "benign",
+      "scenario": "benign"
+    }
+  ]
+}

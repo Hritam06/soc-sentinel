@@ -4,12 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "soc-sentinel"
-version = "1.0.0"
+version = "2.0.0"
 description = "Security event detection and incident analysis platform"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "pydantic>=2.0"
+    "pydantic>=2.0",
+    "PyYAML>=6.0"
 ]
 
 [tool.setuptools.packages.find]

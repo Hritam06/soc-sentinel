@@ -1,0 +1,46 @@
+{
+  "dataset_events": 41,
+  "evaluation_version": "1.0",
+  "labelled_events": 41,
+  "limitations": [
+    "This is rule-presence evaluation, not event-level classification.",
+    "Detection functions currently return rule names rather than triggering event IDs.",
+    "No event-level TP, FP, TN, FN, precision, recall or F1 is claimed.",
+    "The password-spray evaluation threshold is four to match the four-event synthetic scenario.",
+    "Synthetic results do not establish production effectiveness."
+  ],
+  "rule_presence": {
+    "authentication_failure_burst": {
+      "detector_fired": false,
+      "expected_scenario_present": false
+    },
+    "brute_force": {
+      "detector_fired": true,
+      "expected_scenario_present": true
+    },
+    "connection_fanout": {
+      "detector_fired": true,
+      "expected_scenario_present": true
+    },
+    "failure_then_success": {
+      "detector_fired": true,
+      "expected_scenario_present": true
+    },
+    "multi_source_account_targeting": {
+      "detector_fired": false,
+      "expected_scenario_present": false
+    },
+    "password_spray": {
+      "detector_fired": true,
+      "expected_scenario_present": true
+    },
+    "port_scan": {
+      "detector_fired": true,
+      "expected_scenario_present": true
+    },
+    "suspicious_dns": {
+      "detector_fired": true,
+      "expected_scenario_present": true
+    }
+  }
+}\n
