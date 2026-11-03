@@ -4,7 +4,7 @@ SOC Sentinel is a Python-based security event detection and investigation toolki
 
 ## Project status
 
-Version 2.0.0 is under development. The published v1.0.0 release remains unchanged. V2 features are implemented as modular components; full integration across the CLI and detection pipeline is still in progress.
+Version 2.0.0 is released. The published v1.0.0 release remains available. The v2 pipeline is available through the opt-in `--v2` CLI mode; the default CLI path retains v1-compatible behavior.
 
 ## Features
 
@@ -63,9 +63,7 @@ soc-sentinel --file sample_events.jsonl --log-level INFO
 
 
 Configuration
-Configuration models support detection thresholds, time windows, allowlists, suppression settings, and severity mappings. YAML and JSON loading are supported.
-
-Configuration enforcement across every detection path and complete CLI integration are not yet implemented.
+The v2 CLI accepts `--config` for JSON or YAML settings. Allowlists, selected detection thresholds, severity mappings, and in-memory suppression are wired into v2 processing. Not every configuration value is applied by every detector. The current detector interface also does not attach triggering event IDs to generated alerts, and suppression is not durable.
 Synthetic evaluation data
 The datasets/synthetic/ directory contains labelled synthetic events and ground-truth definitions.
 
@@ -75,7 +73,7 @@ Run the test suite:
 python3 -m pytest -q
 
 
-The current local test suite contains 123 passing tests. Python 3.11 and 3.12 CI compatibility still requires verification.
+The local test suite passed **123 tests**. GitHub Actions also passed the test workflow on Python **3.11** and **3.12** for the release commit.
 Security and limitations
 - Detection results are investigative signals, not confirmation of malicious activity.
 - Alert suppression is in-memory and is not durable.
@@ -84,10 +82,10 @@ Security and limitations
 - Review reports and alerts before taking response actions.
 See SECURITY.md and Threat Model.
 Roadmap
-- Complete end-to-end v2 CLI integration.
-- Enforce configuration consistently across detection paths.
-- Expand integration and boundary testing.
-- Verify supported Python versions in CI.
-- Prepare the v2.0.0 release after final validation.
+- Apply all configuration values consistently across every detection rule.
+- Attach triggering event IDs and supporting evidence to each alert.
+- Expand synthetic evaluation to event-level TP/FP/TN/FN and precision/recall/F1 metrics.
+- Add durable alert storage and suppression where persistence is required.
+- Expand validation with representative real-world telemetry.
 License
 See LICENSE.
