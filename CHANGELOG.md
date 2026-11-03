@@ -1,6 +1,6 @@
 # Changelog
 
-## 2.0.0 - Prepared locally — pending release approval
+## 2.0.0 - 2026-11-04
 
 ### Added
 - Expanded security event schema and UTC timestamp normalization.
@@ -24,7 +24,7 @@
 - Published v1.0.0 release and tag remain unchanged.
 
 ### Status
-Unreleased. Final integration and release checks remain outstanding.
+Released. Local validation passed (123 tests); GitHub Actions passed on Python 3.11 and 3.12. Detection evaluation is rule-presence validation only and does not claim event-level precision, recall, or F1.
 
 ## 1.0.0
 Original published release.
