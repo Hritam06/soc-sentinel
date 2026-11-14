@@ -4,7 +4,6 @@ This module keeps the legacy rule-name detector interfaces intact while
 providing structured findings for the v2 investigation pipeline.
 """
 
-from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
@@ -55,12 +54,12 @@ def _make_finding(
     selected = sorted(unique.values(), key=lambda item: (item.timestamp, _event_id(item)))
     source_entities = {
         *(f"ip:{item.source_ip}" for item in selected if item.source_ip),
-        *(f"user:{item.username}" for item in selected if item.username),
         *(f"host:{item.host}" for item in selected if item.host),
     }
     target_entities = {
         *(f"ip:{item.destination_ip}" for item in selected if item.destination_ip),
         *(f"host:{item.destination_hostname}" for item in selected if item.destination_hostname),
+        *(f"user:{item.username}" for item in selected if item.username),
     }
     evidence = tuple(
         f"{_event_id(item)} | {item.timestamp.isoformat()} | "
@@ -82,26 +81,6 @@ def _make_finding(
         last_seen=selected[-1].timestamp,
         explanation=explanation,
     )
-
-
-def _window_matches(
-    events: list[SecurityEvent],
-    predicate,
-    window_minutes: int,
-) -> list[SecurityEvent]:
-    ordered = sorted((item for item in events if predicate(item)), key=lambda item: item.timestamp)
-    matched: dict[str, SecurityEvent] = {}
-    window = timedelta(minutes=window_minutes)
-    for event in ordered:
-        end = event.timestamp + window
-        group = [
-            candidate for candidate in ordered
-            if event.timestamp <= candidate.timestamp <= end
-        ]
-        if group:
-            for candidate in group:
-                matched[_event_id(candidate)] = candidate
-    return list(matched.values())
 
 
 def detect_findings(
