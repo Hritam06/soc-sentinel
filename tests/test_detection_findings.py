@@ -37,7 +37,7 @@ def test_brute_force_finding_contains_exact_event_provenance():
     assert finding.first_seen == NOW
     assert finding.last_seen == NOW + timedelta(seconds=4)
     assert "ip:192.0.2.10" in finding.source_entities
-    assert "user:alice" in finding.source_entities
+    assert "user:alice" in finding.target_entities
     assert finding.evidence
     assert finding.triggering_conditions
 
@@ -59,9 +59,7 @@ def test_password_spray_finding_links_all_targeted_accounts():
 
     finding = next(item for item in findings if item.rule_id == "AUTH-002")
     assert set(finding.event_ids) == {"spray-0", "spray-1", "spray-2"}
-    assert "user:alice" in finding.source_entities
-    assert "user:bob" in finding.source_entities
-    assert "user:carol" in finding.source_entities
+    assert {"user:alice", "user:bob", "user:carol"} <= set(finding.target_entities)
 
 
 def test_failure_then_success_finding_links_both_events():
