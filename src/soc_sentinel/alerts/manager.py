@@ -32,9 +32,13 @@ class AlertManager:
         for existing in reversed(self.alerts):
             if self._key(existing) != self._key(alert):
                 continue
-            if alert.first_seen - existing.last_seen > self.window:
+            if (
+                alert.first_seen > existing.last_seen + self.window
+                or existing.first_seen > alert.last_seen + self.window
+            ):
                 continue
 
+            existing.first_seen = min(existing.first_seen, alert.first_seen)
             existing.last_seen = max(existing.last_seen, alert.last_seen)
             existing.event_ids = tuple(dict.fromkeys(
                 existing.event_ids + alert.event_ids
