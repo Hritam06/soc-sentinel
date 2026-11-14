@@ -292,6 +292,7 @@ def test_cli_v2_alerts_include_event_provenance(tmp_path):
     alert = next(item for item in report["alerts"] if item["rule_id"] == "AUTH-001")
     assert set(alert["event_ids"]) == {f"failure-{second}" for second in range(5)}
     assert alert["evidence"]
-    assert alert["source_entities"] == ["ip:192.0.2.50", "user:admin"]
+    assert alert["source_entities"] == ["ip:192.0.2.50"]
+    assert alert["target_entities"] == ["user:admin"]
     assert alert["first_seen"] == "2026-10-05T03:20:00+00:00"
     assert alert["last_seen"] == "2026-10-05T03:20:04+00:00"
