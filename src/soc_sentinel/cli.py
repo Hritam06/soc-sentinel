@@ -138,6 +138,7 @@ def main() -> None:
                     source_entities=finding.source_entities,
                     target_entities=finding.target_entities,
                     triggering_conditions=finding.triggering_conditions,
+                    evidence=finding.evidence,
                     recommended_actions=(
                         "Review the linked source events and validate their context.",
                         "Confirm the activity with the relevant system or account owner.",
