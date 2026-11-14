@@ -256,3 +256,42 @@ def test_cli_json_batch_includes_correlations(tmp_path):
         "event-1",
         "event-2",
     ]
+
+
+def test_cli_v2_alerts_include_event_provenance(tmp_path):
+    events = [
+        {
+            **EVENT,
+            "timestamp": f"2026-10-05T03:20:{second:02d}+00:00",
+            "event_id": f"failure-{second}",
+            "src_ip": "192.0.2.50",
+            "username": "admin",
+        }
+        for second in range(5)
+    ]
+    event_file = tmp_path / "auth-failures.json"
+    event_file.write_text(json.dumps(events), encoding="utf-8")
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "soc_sentinel.cli",
+            "--file",
+            str(event_file),
+            "--v2",
+            "--format",
+            "json",
+        ],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
+    report = json.loads(result.stdout)
+    alert = next(item for item in report["alerts"] if item["rule_id"] == "AUTH-001")
+    assert set(alert["event_ids"]) == {f"failure-{second}" for second in range(5)}
+    assert alert["evidence"]
+    assert alert["source_entities"] == ["ip:192.0.2.50", "user:admin"]
+    assert alert["first_seen"] == "2026-10-05T03:20:00+00:00"
+    assert alert["last_seen"] == "2026-10-05T03:20:04+00:00"
