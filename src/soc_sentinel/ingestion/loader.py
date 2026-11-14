@@ -22,4 +22,10 @@ def load_events(data: list[dict[str, Any]]) -> list[SecurityEvent]:
     if not isinstance(data, list):
         raise TypeError("Event batch input must be a list.")
 
-    return [load_event(item) for item in data]
+    loaded = [load_event(item) for item in data]
+    seen_ids = set()
+    for event in loaded:
+        if event.event_id in seen_ids:
+            raise ValueError(f"Duplicate event_id in batch: {event.event_id!r}")
+        seen_ids.add(event.event_id)
+    return loaded
