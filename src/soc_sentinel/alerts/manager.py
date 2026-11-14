@@ -42,6 +42,9 @@ class AlertManager:
             existing.triggering_conditions = tuple(dict.fromkeys(
                 existing.triggering_conditions + alert.triggering_conditions
             ))
+            existing.evidence = tuple(dict.fromkeys(
+                existing.evidence + alert.evidence
+            ))
             return existing
 
         self.alerts.append(alert)
