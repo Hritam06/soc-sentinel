@@ -9,9 +9,7 @@ from soc_sentinel.main import process_event
 from soc_sentinel.investigation.correlation import correlate_login_failures
 from soc_sentinel.normalization.normalizer import normalize_event
 from soc_sentinel.ingestion.loader import load_events
-from soc_sentinel.detection.rules import (
-    detect_authentication, detect_network, detect_suspicious_dns,
-)
+from soc_sentinel.detection.findings import detect_findings
 from soc_sentinel.investigation.correlation import correlate_security_events
 from soc_sentinel.reporting.v2_report import build_json_report
 from soc_sentinel.alerts.models import SecurityAlert
@@ -110,56 +108,42 @@ def main() -> None:
             ]
 
             settings = config.detection
-            detections = (
-                detect_authentication(
-                    eligible,
-                    brute_force_threshold=settings.brute_force_threshold,
-                    password_spray_threshold=settings.password_spray_threshold,
-                    window_minutes=settings.authentication_window_minutes,
-                )
-                + detect_network(
-                    eligible,
-                    port_scan_threshold=settings.port_scan_threshold,
-                    fanout_threshold=settings.connection_fanout_threshold,
-                    window_minutes=settings.network_window_minutes,
-                )
-                + detect_suspicious_dns(
-                    eligible,
-                    minimum_length=settings.dns_minimum_length,
-                )
+            findings = detect_findings(
+                eligible,
+                brute_force_threshold=settings.brute_force_threshold,
+                password_spray_threshold=settings.password_spray_threshold,
+                multi_source_threshold=settings.multi_source_threshold,
+                burst_threshold=settings.authentication_burst_threshold,
+                authentication_window_minutes=settings.authentication_window_minutes,
+                burst_window_minutes=settings.authentication_burst_window_minutes,
+                port_scan_threshold=settings.port_scan_threshold,
+                connection_fanout_threshold=settings.connection_fanout_threshold,
+                network_window_minutes=settings.network_window_minutes,
+                dns_minimum_length=settings.dns_minimum_length,
+                dns_minimum_entropy=settings.dns_minimum_entropy,
             )
-
-            rule_ids = {
-                "brute_force_login_attempts": "AUTH-001",
-                "password_spray_attempts": "AUTH-002",
-                "failure_then_success": "AUTH-003",
-                "multi_source_account_targeting": "AUTH-004",
-                "authentication_failure_burst": "AUTH-005",
-                "port_scan": "NET-001",
-                "connection_fanout": "NET-002",
-                "suspicious_dns_query": "DNS-001",
-            }
             manager = AlertManager(
                 window_minutes=config.suppression.window_minutes,
                 enabled=config.suppression.enabled,
             )
-            for name in detections:
-                rule_id = rule_ids.get(name, name.upper())
-                severity = config.severity.get(rule_id, "medium")
+            for finding in findings:
+                severity = config.severity.get(finding.rule_id, "medium")
                 manager.add(SecurityAlert(
-                    rule_id=rule_id,
-                    rule_name=name,
+                    rule_id=finding.rule_id,
+                    rule_name=finding.rule_name,
                     severity=severity,
-                    confidence=0.55,
-                    explanation=(
-                        "A detection heuristic matched the supplied event batch. "
-                        "The current detector does not expose triggering event IDs; "
-                        "investigate source evidence before drawing conclusions."
-                    ),
+                    confidence=finding.confidence,
+                    explanation=finding.explanation,
+                    event_ids=finding.event_ids,
+                    source_entities=finding.source_entities,
+                    target_entities=finding.target_entities,
+                    triggering_conditions=finding.triggering_conditions,
                     recommended_actions=(
-                        "Review the relevant source events.",
-                        "Validate the activity with the system owner.",
+                        "Review the linked source events and validate their context.",
+                        "Confirm the activity with the relevant system or account owner.",
                     ),
+                    first_seen=finding.first_seen,
+                    last_seen=finding.last_seen,
                 ))
 
             alerts = list(manager.alerts) if hasattr(manager, "alerts") else []
