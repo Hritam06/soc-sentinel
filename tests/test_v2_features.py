@@ -139,6 +139,7 @@ def make_alert(rule_id="AUTH-001", event_ids=("e1",)):
         confidence=0.8,
         explanation="Test evidence",
         event_ids=event_ids,
+        evidence=(f"Evidence for {event_ids[0]}",),
         first_seen=NOW,
         last_seen=NOW,
     )
@@ -158,6 +159,7 @@ def test_alert_manager_suppresses_duplicates():
     assert first.alert_id == second.alert_id
     assert len(manager.list_alerts()) == 1
     assert set(second.event_ids) == {"e1", "e2"}
+    assert set(second.evidence) == {"Evidence for e1", "Evidence for e2"}
 
 
 def test_risk_assessment_is_bounded():
@@ -189,3 +191,18 @@ def test_per_rule_evaluation():
         {"AUTH-001": {"e2", "e3"}},
     )
     assert result["per_rule"]["AUTH-001"]["tp"] == 1
+
+
+def test_alert_manager_does_not_merge_different_entities():
+    manager = AlertManager(window_minutes=15)
+    first = make_alert()
+    first.source_entities = ("ip:192.0.2.1",)
+    first.target_entities = ("user:alice",)
+    second = make_alert(event_ids=("e2",))
+    second.source_entities = ("ip:192.0.2.2",)
+    second.target_entities = ("user:alice",)
+
+    manager.add(first)
+    manager.add(second)
+
+    assert len(manager.list_alerts()) == 2
