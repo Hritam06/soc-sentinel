@@ -37,3 +37,7 @@ data/processed/
 build/
 dist/
 *.whl
+
+# Local V3 release/documentation working backups
+.v3-*-backup-*/
+.v3-release-artifacts/

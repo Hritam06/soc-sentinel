@@ -34,12 +34,11 @@
 
 ## Overview
 
+SOC Sentinel is a defensive security-monitoring pipeline that transforms normalized security events into traceable investigative findings. It combines validated event ingestion, heuristic authentication, network and DNS detection, cross-event correlation, structured alert evidence, configurable investigation controls, explainable risk scoring, and JSON/HTML reporting.
 
-Version 3.0.0 extends the existing SOC Sentinel pipeline with event-level alert provenance and traceability, labelled synthetic detection evaluation, and integrated configuration and investigation controls. The existing command-line compatibility path is retained. Evaluation results are based on controlled synthetic scenarios and do not establish production detection performance.
+**V3.0.0 contribution:** supported detections retain event-level identifiers and evidence context; labelled synthetic evaluation measures event-ID matches using per-rule classification metrics; and validated configuration controls are integrated into supported CLI processing paths. The original v1-compatible command-line path and existing `--v2` option name are retained for compatibility.
 
-SOC Sentinel is a defensive security-monitoring project for ingesting event data, identifying suspicious patterns, correlating related activity, and producing investigation reports.
-
-Version **3.0.0** builds on the structured event and investigation pipeline with event-level alert provenance, traceable evidence, labelled synthetic evaluation, and integrated configuration and investigation controls. The original v1-compatible command-line path and the existing `--v2` option name are retained for compatibility.
+The supplied evaluation dataset contains 46 labelled synthetic events and evaluates six detection rules. Its results describe performance on those controlled scenarios only; they do not establish production detection effectiveness.
 
 ### What it provides
 
@@ -281,6 +280,7 @@ For the threat assumptions, controls, and operational guidance, read the [Threat
 - [Detection Rules](docs/DETECTION_RULES.md)
 - [Threat Model](docs/THREAT_MODEL.md)
 - [Configuration and Investigation](docs/CONFIGURATION_AND_INVESTIGATION.md)
+- [Evaluation Methodology](docs/EVALUATION.md)
 - [Changelog](CHANGELOG.md)
 - [MIT License](LICENSE)
 
