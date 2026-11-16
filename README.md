@@ -39,7 +39,7 @@ Version 3.0.0 extends the existing SOC Sentinel pipeline with event-level alert 
 
 SOC Sentinel is a defensive security-monitoring project for ingesting event data, identifying suspicious patterns, correlating related activity, and producing investigation reports.
 
-Version **2.0.0** adds a structured event model and an opt-in investigation pipeline while retaining the original v1-compatible command-line path. It is designed as a small, inspectable toolkit that can be extended or used as a starting point for security automation.
+Version **3.0.0** builds on the structured event and investigation pipeline with event-level alert provenance, traceable evidence, labelled synthetic evaluation, and integrated configuration and investigation controls. The original v1-compatible command-line path and the existing `--v2` option name are retained for compatibility.
 
 ### What it provides
 
@@ -61,12 +61,12 @@ Version **2.0.0** adds a structured event model and an opt-in investigation pipe
 - Pydantic **2.x**
 - PyYAML **6.x**
 
-### Install from the v2.0.0 source
+### Install from the v3.0.0 source
 
 ```bash
 git clone https://github.com/Hritam06/soc-sentinel.git
 cd soc-sentinel
-git checkout v2.0.0
+git checkout v3.0.0
 
 python -m venv .venv
 source .venv/bin/activate
@@ -105,11 +105,11 @@ SOC Sentinel accepts a JSON event, a JSON array of events, or a JSONL file conta
 # Original v1-compatible path
 soc-sentinel --file sample_events.jsonl
 
-# Structured v2 investigation report
+# Structured investigation report (existing --v2 option)
 soc-sentinel --file sample_events.jsonl --v2
 ```
 
-The v2 mode emits a structured JSON report containing event, alert, correlation, and risk-assessment sections.
+The structured mode, invoked using the retained `--v2` option, emits a JSON report containing event, alert, correlation, and risk-assessment sections.
 
 You can also pipe JSONL events through standard input:
 
@@ -117,21 +117,21 @@ You can also pipe JSONL events through standard input:
 cat sample_events.jsonl | soc-sentinel --v2
 ```
 
-## v1 compatibility and the v2 pipeline
+## CLI compatibility and the structured investigation pipeline
 
-SOC Sentinel keeps the original CLI path as the default. Add `--v2` to opt into the newer event-validation, detection, correlation, alert-management, and reporting pipeline.
+SOC Sentinel keeps the original v1-compatible CLI path as the default. Add the existing `--v2` option to invoke the structured event-validation, detection, correlation, alert-management, and reporting pipeline. The option name is retained for backward compatibility; the current project release is V3.0.0.
 
 | Mode | Invocation | Output |
 |---|---|---|
 | v1-compatible | `soc-sentinel --file events.jsonl` | Human-readable text |
 | v1-compatible JSON | `soc-sentinel --file events.jsonl --format json` | JSON with reports and login-failure correlations |
-| v2 | `soc-sentinel --file events.jsonl --v2` | Structured v2 JSON investigation report |
+| Structured investigation | `soc-sentinel --file events.jsonl --v2` | Structured JSON investigation report |
 
-The existing **v1.0.0** GitHub release remains available. See the [v2.0.0 release notes](https://github.com/Hritam06/soc-sentinel/releases/tag/v3.0.0).
+The existing **v1.0.0** GitHub release remains available. See the [V3.0.0 release notes](https://github.com/Hritam06/soc-sentinel/releases/tag/v3.0.0).
 
 ## Detection coverage
 
-The v2 detection catalogue currently includes these heuristic rules:
+The V3.0.0 detection catalogue includes these heuristic rules:
 
 | Rule | Area | Detection intent |
 |---|---|---|
@@ -150,7 +150,7 @@ See [Detection Rules](docs/DETECTION_RULES.md) for the catalogue and [Architectu
 
 ## Configuration
 
-The v2 CLI accepts optional JSON or YAML configuration through `--config`. For example, create `config.yaml`:
+The structured CLI pipeline accepts optional JSON or YAML configuration through `--config`. For example, create `config.yaml`:
 
 ```yaml
 detection:
@@ -173,28 +173,31 @@ suppression:
   window_minutes: 15
 
 severity:
-  AUTH-001: high
-  AUTH-002: high
-  NET-001: medium
+  low: low
+  medium: medium
+  high: critical
+  critical: critical
 ```
 
-Run the v2 pipeline with that configuration:
+Run the structured pipeline with that configuration:
 
 ```bash
 soc-sentinel --file sample_events.jsonl --v2 --config config.yaml
 ```
 
-Configuration is validated when loaded. Unknown keys and invalid values are rejected rather than silently accepted. The current CLI applies allowlists, suppression, rule-severity overrides, and selected detection thresholds/windows; **not every setting is enforced across every detection helper yet**. Review the settings model and current pipeline before relying on a configuration as a complete policy.
+Configuration is validated when loaded. Unknown keys and invalid values are rejected rather than silently accepted. The CLI applies allowlists, suppression, severity-category overrides, configured authentication and network thresholds/windows, DNS minimum length, and investigation settings through their supported processing paths. Severity overrides are keyed by severity category (`low`, `medium`, `high`, or `critical`), not by detection rule ID. Standalone helpers do not necessarily accept every configuration setting.
 
 ## Reports and investigation context
 
-A v2 JSON report includes:
+The structured JSON report includes:
 
 - Report version and generation timestamp
 - Normalized events and event count
 - Structured alerts and alert count
 - Cross-event correlations
-- A risk-assessment summary
+- A risk-assessment summary and score breakdown
+- Event-level alert identifiers and supported evidence context
+- Source and target entities, triggering conditions, and recommended actions where supplied
 - A reminder that detections are investigative indicators
 
 The reporting module also provides helpers to build and write JSON and HTML reports:
@@ -214,9 +217,9 @@ The repository includes a labelled synthetic dataset under `datasets/synthetic/`
 
 - `events.jsonl` — sample security events
 - `ground_truth.json` — scenario labels
-- `evaluation-results.json` — rule-presence evaluation output
+- `evaluation-results.json` — event-ID-based evaluation output
 
-Run the synthetic rule-presence evaluation from the repository root:
+Run the event-level synthetic evaluation from the repository root:
 
 ```bash
 python -m soc_sentinel.evaluation.run_synthetic
@@ -228,13 +231,13 @@ Run the test suite:
 python -m pytest -q tests/ --import-mode=importlib
 ```
 
-The v2.0.0 release passed **123 local tests**. GitHub Actions also passed on **Python 3.11 and 3.12**.
+The V3.0.0 regression suite passed **161 tests locally on Python 3.14.8**. GitHub Actions passed on **Python 3.11 and 3.12**.
 
-The V3.0.0 synthetic evaluation uses 46 labelled events and evaluates six detection rules using event-level matching. Its results describe only the provided synthetic scenarios. Aggregate true-negative counts are summed across rule-level classifications and must not be interpreted as a count of distinct benign events. The local regression suite passed 161 tests on Python 3.14.8; Python 3.11 and 3.12 CI results must be verified separately.
+The synthetic evaluation uses 46 labelled events and evaluates six detection rules using event-ID matching. Results describe only the supplied synthetic scenarios. Aggregate true-negative counts are summed across rule-level classifications and must not be interpreted as a count of distinct benign events.
 
 ### How to interpret the evaluation
 
-The current synthetic evaluation checks whether expected scenarios are present and whether the corresponding detector fires. It is **not** event-level classification: the detectors do not yet return the triggering event IDs needed to support event-level true/false positives and negatives. Therefore, the project does not claim precision, recall, or F1 scores from this dataset. Synthetic results also do not establish real-world detection performance.
+The synthetic evaluation matches expected and predicted event identifiers independently for each rule. It calculates true positives, false positives, false negatives and true negatives, together with precision, recall and F1. True negatives are calculated from the supplied evaluation population and summed across rule-level classifications in the aggregate metrics. These results are limited to the labelled synthetic scenarios; they do not establish production detection performance or generalization to unseen environments.
 
 ## Project structure
 
@@ -253,7 +256,7 @@ src/soc_sentinel/
 └── utils/           # Shared utilities
 
 datasets/synthetic/  # Synthetic events, labels, and evaluation output
-docs/                # Architecture, detection rules, and threat model
+docs/                # Architecture, detection, threat model, and configuration
 tests/               # Automated tests
 ```
 
@@ -262,9 +265,9 @@ tests/               # Automated tests
 SOC Sentinel is an investigation aid, not a complete SIEM or incident-response platform.
 
 - **Heuristic detections:** alerts can be false positives or false negatives; analyst validation is required.
-- **Alert evidence:** current detector functions do not expose the triggering event IDs, so generated v2 alerts cannot yet provide complete event-level evidence.
+- **Alert evidence:** supported V3.0.0 detection results carry event identifiers and evidence context. Traceability depends on the quality and integrity of the ingested source events.
 - **In-memory suppression:** duplicate suppression is process-local and is not persisted between runs.
-- **Configuration coverage:** some settings are not yet applied uniformly across all detection functions.
+- **Configuration coverage:** validated settings are passed through their supported CLI detection and investigation paths; standalone helpers do not necessarily accept every setting.
 - **No durable backend:** the project does not currently provide a database-backed alert store.
 - **No access-control layer:** authentication and role-based access control are not included.
 - **No packet inspection:** the project analyzes supplied event records; it does not capture traffic or inspect full network sessions.
@@ -277,6 +280,7 @@ For the threat assumptions, controls, and operational guidance, read the [Threat
 - [Architecture](docs/ARCHITECTURE.md)
 - [Detection Rules](docs/DETECTION_RULES.md)
 - [Threat Model](docs/THREAT_MODEL.md)
+- [Configuration and Investigation](docs/CONFIGURATION_AND_INVESTIGATION.md)
 - [Changelog](CHANGELOG.md)
 - [MIT License](LICENSE)
 
@@ -287,11 +291,3 @@ Issues and pull requests are welcome. For changes to detection logic, include fo
 ## License
 
 SOC Sentinel is released under the [MIT License](LICENSE).
-
-## V3.0.0 Evaluation Notes
-
-The V3.0.0 synthetic evaluation uses 46 labelled events and evaluates six detection rules using event-level matching. Results describe only the supplied synthetic scenarios. Aggregate true-negative counts are summed across rule-level classifications and must not be interpreted as a count of distinct benign events. Synthetic metrics do not establish production detection effectiveness.
-
-## V3.0.0 Investigation Notes
-
-Supported alert results include event-level provenance and evidence context. Investigation correlation records supported relationships between authentication and network activity. Risk assessments expose a score breakdown. Asset criticality and attack progression remain explicit inputs and are not inferred automatically by the CLI.

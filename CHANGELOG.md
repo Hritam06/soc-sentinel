@@ -22,10 +22,7 @@
 - Python requirement remains >=3.11.
 
 ### Status
-- Release preparation; local validation is recorded below.
-- Local regression suite: 161 tests passed on Python 3.14.8.
-- Python 3.11 and 3.12 CI results must be verified separately.
-- Synthetic evaluation does not establish production detection effectiveness.
+Released. Local regression suite passed (161 tests on Python 3.14.8); GitHub Actions passed on Python 3.11 and 3.12. Synthetic evaluation is limited to the labelled scenarios and does not establish production detection effectiveness.
 
 
 ## 2.0.0 - 2026-11-04
