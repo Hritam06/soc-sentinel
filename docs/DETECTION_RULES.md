@@ -19,4 +19,23 @@
 
 ## Interpretation
 
-Rules are heuristic detections, not proof of malicious activity. Thresholds and windows are configurable in the settings model, but are not yet enforced across every detection path.
+Supported detection and investigation settings are validated centrally and passed through the corresponding CLI processing paths. This does not imply that every standalone helper accepts or enforces every setting.
+
+# V3.0.0 Detection Catalogue
+
+### Authentication
+- AUTH-001: Repeated login failures / brute-force activity.
+- AUTH-002: Password-spray attempts.
+- AUTH-003: Authentication failure followed by success.
+- AUTH-004: Multiple accounts targeted from a source.
+- AUTH-005: Authentication bursts.
+
+### Network
+- NET-001: Port scanning.
+- NET-002: Connection fan-out.
+
+### DNS
+- DNS-001: Suspicious DNS characteristics, including unusually long or high-entropy query names.
+
+### Interpretation
+Detection rules are heuristic and depend on the supplied event data and configured thresholds. Synthetic evaluation results are limited to the labelled scenarios and do not establish production effectiveness.

@@ -1,46 +1,88 @@
 {
-  "dataset_events": 41,
-  "evaluation_version": "1.0",
-  "labelled_events": 41,
+  "dataset": {
+    "events": 46,
+    "labelled_events": 46,
+    "version": "1.1"
+  },
+  "evaluation_version": "2.0",
+  "latency_ms": {
+    "authentication": 0.318,
+    "dns": 0.304,
+    "network": 0.241
+  },
   "limitations": [
-    "This is rule-presence evaluation, not event-level classification.",
-    "Detection functions currently return rule names rather than triggering event IDs.",
-    "No event-level TP, FP, TN, FN, precision, recall or F1 is claimed.",
-    "The password-spray evaluation threshold is four to match the four-event synthetic scenario.",
+    "Metrics depend on the completeness and correctness of labels.",
+    "Synthetic results do not establish production effectiveness.",
+    "TN is zero when no complete evaluation population is supplied.",
+    "Overall metrics are micro-averaged across rule/event classifications.",
+    "Latency is local detector execution time only.",
+    "Only explicitly labelled positive scenarios are evaluated.",
     "Synthetic results do not establish production effectiveness."
   ],
-  "rule_presence": {
-    "authentication_failure_burst": {
-      "detector_fired": false,
-      "expected_scenario_present": false
-    },
-    "brute_force": {
-      "detector_fired": true,
-      "expected_scenario_present": true
+  "matching_policy": "Per-rule event-ID matching: intersection of ground-truth positive IDs and alert event_ids is TP; predicted IDs outside that rule's positive set are FP; missed positive IDs are FN; remaining events are TN.",
+  "overall": {
+    "f1": 1.0,
+    "fn": 0,
+    "fp": 0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "tn": 240,
+    "tp": 36
+  },
+  "per_rule": {
+    "brute_force_login_attempts": {
+      "f1": 1.0,
+      "fn": 0,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "tn": 41,
+      "tp": 5
     },
     "connection_fanout": {
-      "detector_fired": true,
-      "expected_scenario_present": true
+      "f1": 1.0,
+      "fn": 0,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "tn": 34,
+      "tp": 12
     },
     "failure_then_success": {
-      "detector_fired": true,
-      "expected_scenario_present": true
+      "f1": 1.0,
+      "fn": 0,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "tn": 44,
+      "tp": 2
     },
-    "multi_source_account_targeting": {
-      "detector_fired": false,
-      "expected_scenario_present": false
-    },
-    "password_spray": {
-      "detector_fired": true,
-      "expected_scenario_present": true
+    "password_spray_attempts": {
+      "f1": 1.0,
+      "fn": 0,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "tn": 42,
+      "tp": 4
     },
     "port_scan": {
-      "detector_fired": true,
-      "expected_scenario_present": true
+      "f1": 1.0,
+      "fn": 0,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "tn": 34,
+      "tp": 12
     },
     "suspicious_dns": {
-      "detector_fired": true,
-      "expected_scenario_present": true
+      "f1": 1.0,
+      "fn": 0,
+      "fp": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "tn": 45,
+      "tp": 1
     }
   }
-}\n
+}

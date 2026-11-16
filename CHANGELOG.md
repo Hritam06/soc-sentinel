@@ -1,5 +1,33 @@
 # Changelog
 
+
+## 3.0.0 - 2026-11-17
+
+### Added
+- Event-level alert provenance and traceability, including event identifiers, source and target entities, triggering conditions and recommended actions in supported alert results.
+- Synthetic detection evaluation using labelled event identifiers, with precision, recall, F1 and rule-level classification metrics.
+- Configuration and investigation controls, including validated environment overrides, configurable correlation windows and explainable risk-score contributions.
+- Investigation correlation for supported authentication and network activity relationships.
+- Configuration and investigation documentation.
+
+### Changed
+- Alert aggregation retains and merges supported event evidence and triggering-condition context.
+- Investigation risk scoring supports explicit asset-criticality and attack-progression inputs, with configurable bonuses and a maximum score of 100.
+- Configuration validation includes allowlist normalization and duplicate handling.
+- Regression coverage expanded for evidence, evaluation, configuration, investigation and CLI integration.
+
+### Compatibility
+- Existing V1-compatible processing and the existing structured pipeline command-line interface are retained.
+- Existing default risk-scoring behavior is preserved unless optional investigation inputs or settings are supplied.
+- Python requirement remains >=3.11.
+
+### Status
+- Release preparation; local validation is recorded below.
+- Local regression suite: 161 tests passed on Python 3.14.8.
+- Python 3.11 and 3.12 CI results must be verified separately.
+- Synthetic evaluation does not establish production detection effectiveness.
+
+
 ## 2.0.0 - 2026-11-04
 
 ### Added

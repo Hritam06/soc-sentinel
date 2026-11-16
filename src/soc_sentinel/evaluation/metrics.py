@@ -1,88 +1,140 @@
-"""Deterministic binary and per-rule detection evaluation."""
+"""Deterministic event-level binary and per-rule evaluation."""
 
 import json
 from pathlib import Path
+from typing import Iterable
 
 
-def calculate_metrics(expected: set[str], predicted: set[str]) -> dict:
-    """Calculate binary classification metrics for a set of event IDs."""
+def calculate_metrics(
+    expected: Iterable[str],
+    predicted: Iterable[str],
+    total_population: int | None = None,
+) -> dict:
+    """Calculate classification metrics using event identifiers.
+
+    TN is zero when the complete negative population is not supplied.
+    """
+    expected = set(expected)
+    predicted = set(predicted)
+
     tp = len(expected & predicted)
     fp = len(predicted - expected)
     fn = len(expected - predicted)
-    tn = 0
+
+    if total_population is None:
+        tn = 0
+    else:
+        if total_population < 0:
+            raise ValueError("total_population cannot be negative")
+        classified = len(expected | predicted)
+        if classified > total_population:
+            raise ValueError(
+                "Classified event IDs exceed total evaluation population"
+            )
+        tn = total_population - classified
+
     precision = tp / (tp + fp) if tp + fp else 0.0
     recall = tp / (tp + fn) if tp + fn else 0.0
     f1 = (
         2 * precision * recall / (precision + recall)
         if precision + recall else 0.0
     )
+
     return {
-        "tp": tp, "fp": fp, "tn": tn, "fn": fn,
+        "tp": tp,
+        "fp": fp,
+        "tn": tn,
+        "fn": fn,
         "precision": round(precision, 6),
         "recall": round(recall, 6),
         "f1": round(f1, 6),
     }
 
 
-def evaluate_rules(ground_truth: dict, predictions: dict) -> dict:
-    """Evaluate each rule and aggregate event-level predictions.
-
-    ground_truth maps rule names to sets of labelled-positive event IDs.
-    predictions maps rule names to sets of detected event IDs.
-    """
+def evaluate_rules(
+    ground_truth: dict,
+    predictions: dict,
+    total_population: int | None = None,
+) -> dict:
+    """Evaluate labelled-positive event IDs independently for each rule."""
     rules = sorted(set(ground_truth) | set(predictions))
-    per_rule = {}
-    all_expected = set()
-    all_predicted = set()
+    per_rule = {
+        rule: calculate_metrics(
+            ground_truth.get(rule, set()),
+            predictions.get(rule, set()),
+            total_population,
+        )
+        for rule in rules
+    }
 
-    for rule in rules:
-        expected = set(ground_truth.get(rule, set()))
-        predicted = set(predictions.get(rule, set()))
-        per_rule[rule] = calculate_metrics(expected, predicted)
-        all_expected.update(expected)
-        all_predicted.update(predicted)
+    if total_population is None:
+        expected = set().union(
+            *(set(v) for v in ground_truth.values())
+        ) if ground_truth else set()
+        predicted = set().union(
+            *(set(v) for v in predictions.values())
+        ) if predictions else set()
+        overall = calculate_metrics(expected, predicted)
+    else:
+        counts = {
+            key: sum(item[key] for item in per_rule.values())
+            for key in ("tp", "fp", "tn", "fn")
+        }
+        tp, fp, fn = counts["tp"], counts["fp"], counts["fn"]
+        precision = tp / (tp + fp) if tp + fp else 0.0
+        recall = tp / (tp + fn) if tp + fn else 0.0
+        f1 = (
+            2 * precision * recall / (precision + recall)
+            if precision + recall else 0.0
+        )
+        overall = {
+            **counts,
+            "precision": round(precision, 6),
+            "recall": round(recall, 6),
+            "f1": round(f1, 6),
+        }
 
     return {
-        "evaluation_version": "1.0",
+        "evaluation_version": "2.0",
         "per_rule": per_rule,
-        "overall": calculate_metrics(all_expected, all_predicted),
+        "overall": overall,
         "limitations": [
-            "TN is reported as zero because an explicit negative population is not supplied.",
-            "Metrics depend on the completeness and correctness of ground-truth labels.",
-            "Synthetic evaluation does not establish production detection effectiveness.",
+            "Metrics depend on the completeness and correctness of labels.",
+            "Synthetic results do not establish production effectiveness.",
+            "TN is zero when no complete evaluation population is supplied.",
+            "Overall metrics are micro-averaged across rule/event classifications.",
         ],
     }
 
 
 def write_evaluation_json(results: dict, path: str | Path) -> Path:
+    """Write a deterministic machine-readable JSON report."""
     destination = Path(path)
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(
-        json.dumps(results, indent=2, sort_keys=True),
+        json.dumps(results, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
     return destination
 
 
 def format_evaluation_text(results: dict) -> str:
+    """Format per-rule and aggregate metrics for terminal output."""
     lines = ["SOC Sentinel Detection Evaluation", "=" * 34]
-    for rule, metrics in sorted(results["per_rule"].items()):
+    for rule, item in sorted(results["per_rule"].items()):
         lines.append(
-            f"{rule}: TP={metrics['tp']} FP={metrics['fp']} "
-            f"TN={metrics['tn']} FN={metrics['fn']} "
-            f"Precision={metrics['precision']:.4f} "
-            f"Recall={metrics['recall']:.4f} F1={metrics['f1']:.4f}"
+            f"{rule}: TP={item['tp']} FP={item['fp']} "
+            f"TN={item['tn']} FN={item['fn']} "
+            f"Precision={item['precision']:.4f} "
+            f"Recall={item['recall']:.4f} F1={item['f1']:.4f}"
         )
     overall = results["overall"]
     lines.extend([
         "",
-        "Overall",
+        "Overall micro-average",
         f"TP={overall['tp']} FP={overall['fp']} "
         f"TN={overall['tn']} FN={overall['fn']}",
         f"Precision={overall['precision']:.4f} "
         f"Recall={overall['recall']:.4f} F1={overall['f1']:.4f}",
-        "",
-        "Limitations:",
-        *[f"- {item}" for item in results["limitations"]],
     ])
     return "\n".join(lines)

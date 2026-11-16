@@ -40,7 +40,11 @@ def infer_category(source: str, event_type: str) -> EventCategory:
     return EventCategory.OTHER
 
 
-def normalize_event(data: dict[str, Any]) -> SecurityEvent:
+def normalize_event(
+    data: dict[str, Any],
+    *,
+    original_event: dict[str, Any] | None = None,
+) -> SecurityEvent:
     """Normalize common telemetry aliases and preserve the original event."""
     if not isinstance(data, dict):
         raise TypeError("Event input must be a dictionary.")
@@ -59,6 +63,10 @@ def normalize_event(data: dict[str, Any]) -> SecurityEvent:
             str(normalized.get("event_type", "")),
         )
 
-    normalized["raw_event"] = dict(data)
+    if "source_event_id" in normalized:
+        source_id = normalized.pop("source_event_id")
+        if "original_source_id" not in normalized and source_id is not None:
+            normalized["original_source_id"] = str(source_id)
+    normalized["raw_event"] = dict(data if original_event is None else original_event)
 
     return SecurityEvent.model_validate(normalized)

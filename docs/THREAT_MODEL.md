@@ -33,3 +33,12 @@
 ## Operational guidance
 
 Restrict access to event files and reports. Avoid storing credentials or unnecessary personal data in event metadata. Review alerts before taking incident-response action.
+
+# V3.0.0 Operational Considerations
+
+- Event identifiers and alert evidence improve traceability but depend on the quality and integrity of ingested event data.
+- Configuration files and environment variables may contain sensitive operational values; secrets should not be committed to source control.
+- Strict validation rejects invalid configuration, but does not replace secure deployment and access controls.
+- Risk scoring uses explicit asset-criticality and progression inputs. The CLI does not independently verify or infer those values.
+- Correlation and detection are heuristic and may produce false positives or false negatives.
+- Synthetic evaluation is not evidence of production detection effectiveness.

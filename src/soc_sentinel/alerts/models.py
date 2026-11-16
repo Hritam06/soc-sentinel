@@ -5,6 +5,8 @@ from datetime import datetime, timezone
 from enum import Enum
 from uuid import uuid4
 
+from typing import Any
+
 
 class AlertStatus(str, Enum):
     NEW = "New"
@@ -24,6 +26,7 @@ class SecurityAlert:
     source_entities: tuple[str, ...] = ()
     target_entities: tuple[str, ...] = ()
     triggering_conditions: tuple[str, ...] = ()
+    evidence: tuple[dict[str, Any] | str, ...] = ()
     recommended_actions: tuple[str, ...] = ()
     first_seen: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     last_seen: datetime = field(default_factory=lambda: datetime.now(timezone.utc))

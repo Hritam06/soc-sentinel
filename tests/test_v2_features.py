@@ -45,6 +45,44 @@ def test_ingestion_preserves_original_event_and_assigns_id():
     assert loaded.raw_event["username"] == "alice"
 
 
+def test_ingestion_preserves_source_provenance():
+    raw = {
+        "timestamp": "2026-01-01T00:00:00Z",
+        "source": "auth",
+        "event_type": "login_failure",
+        "source_event_id": "vendor-event-42",
+        "original_event_reference": "auth-log:line:42",
+        "username": "alice",
+    }
+
+    loaded = load_event(raw)
+
+    assert loaded.event_id
+    assert loaded.original_source_id == "vendor-event-42"
+    assert loaded.original_event_reference == "auth-log:line:42"
+    assert loaded.raw_event == raw
+    assert loaded.parser_version == "1.0.0"
+    assert loaded.schema_version == "1.0.0"
+    assert loaded.ingestion_timestamp.tzinfo == timezone.utc
+
+
+def test_ingestion_preserves_canonical_source_reference():
+    raw = {
+        "timestamp": "2026-01-01T00:00:00Z",
+        "source": "auth",
+        "event_type": "login_failure",
+        "source_event_id": "vendor-event-42",
+        "original_source_id": "canonical-source-99",
+        "original_event_reference": "auth-log:line:99",
+    }
+
+    loaded = load_event(raw)
+
+    assert loaded.original_source_id == "canonical-source-99"
+    assert loaded.original_event_reference == "auth-log:line:99"
+    assert loaded.raw_event == raw
+
+
 def test_invalid_ip_is_rejected():
     with pytest.raises(ValidationError):
         event("bad-ip", "connection", source_ip="999.999.999.999")
@@ -131,6 +169,149 @@ def test_cross_event_correlation_preserves_event_ids():
     )
 
 
+def test_failure_then_success_correlation_includes_source_provenance():
+    events = [
+        event(
+            "f1", "login_failure",
+            category=EventCategory.AUTHENTICATION,
+            username="alice",
+            original_source_id="auth-source-1",
+            original_event_reference="auth.log:10",
+        ),
+        event(
+            "s1", "login_success",
+            category=EventCategory.AUTHENTICATION,
+            username="alice",
+            seconds=10,
+            original_source_id="auth-source-2",
+            original_event_reference="auth.log:11",
+        ),
+    ]
+
+    result = next(
+        item for item in correlate_security_events(events)
+        if item["correlation_type"] == "authentication_failure_then_success"
+    )
+
+    assert result["source_provenance"] == [
+        {
+            "event_id": "f1",
+            "original_source_id": "auth-source-1",
+            "original_event_reference": "auth.log:10",
+        },
+        {
+            "event_id": "s1",
+            "original_source_id": "auth-source-2",
+            "original_event_reference": "auth.log:11",
+        },
+    ]
+
+
+def test_authentication_network_correlation_includes_source_provenance():
+    events = [
+        event(
+            "f1", "login_failure",
+            category=EventCategory.AUTHENTICATION,
+            source_ip="192.0.2.10",
+            original_source_id="auth-source",
+            original_event_reference="auth.log:20",
+        ),
+        event(
+            "n1", "connection",
+            category=EventCategory.NETWORK,
+            source_ip="192.0.2.10",
+            destination_ip="198.51.100.10",
+            seconds=10,
+            original_source_id="firewall-source",
+            original_event_reference="firewall.log:30",
+        ),
+    ]
+
+    result = next(
+        item for item in correlate_security_events(events)
+        if item["correlation_type"] == "authentication_with_network_activity"
+    )
+
+    assert {item["event_id"] for item in result["source_provenance"]} == {"f1", "n1"}
+    assert {item["original_source_id"] for item in result["source_provenance"]} == {
+        "auth-source", "firewall-source"
+    }
+
+
+def test_multiple_accounts_correlation_includes_source_provenance():
+    events = [
+        event(
+            "f1", "login_failure",
+            category=EventCategory.AUTHENTICATION,
+            username="alice",
+            source_ip="192.0.2.20",
+            original_source_id="auth-source",
+            original_event_reference="auth.log:40",
+        ),
+        event(
+            "f2", "login_failure",
+            category=EventCategory.AUTHENTICATION,
+            username="bob",
+            source_ip="192.0.2.20",
+            seconds=10,
+            original_source_id="auth-source",
+            original_event_reference="auth.log:41",
+        ),
+    ]
+
+    result = next(
+        item for item in correlate_security_events(events)
+        if item["correlation_type"] == "multiple_accounts_from_source"
+    )
+
+    assert {item["event_id"] for item in result["source_provenance"]} == {"f1", "f2"}
+    assert {item["original_event_reference"] for item in result["source_provenance"]} == {
+        "auth.log:40", "auth.log:41"
+    }
+
+
+def test_network_fanout_correlation_includes_source_provenance():
+    events = [
+        event(
+            "f1", "login_failure",
+            category=EventCategory.AUTHENTICATION,
+            source_ip="192.0.2.30",
+            original_source_id="auth-source",
+            original_event_reference="auth.log:50",
+        ),
+        event(
+            "n1", "connection",
+            category=EventCategory.NETWORK,
+            source_ip="192.0.2.30",
+            destination_ip="198.51.100.1",
+            seconds=10,
+            original_source_id="firewall-source",
+            original_event_reference="firewall.log:51",
+        ),
+        event(
+            "n2", "connection",
+            category=EventCategory.NETWORK,
+            source_ip="192.0.2.30",
+            destination_ip="198.51.100.2",
+            seconds=20,
+            original_source_id="firewall-source",
+            original_event_reference="firewall.log:52",
+        ),
+    ]
+
+    result = next(
+        item for item in correlate_security_events(events)
+        if item["correlation_type"] == "authentication_then_network_fanout"
+    )
+
+    assert {item["event_id"] for item in result["source_provenance"]} == {
+        "f1", "n1", "n2"
+    }
+    assert {item["original_event_reference"] for item in result["source_provenance"]} == {
+        "auth.log:50", "firewall.log:51", "firewall.log:52"
+    }
+
+
 def make_alert(rule_id="AUTH-001", event_ids=("e1",)):
     return SecurityAlert(
         rule_id=rule_id,
@@ -167,11 +348,41 @@ def test_risk_assessment_is_bounded():
 
 def test_json_and_html_reports_are_generated():
     alert = make_alert()
-    report = build_json_report([], [alert], [])
+    correlations = [
+        {
+            "correlation_type": "authentication_failure_then_success",
+            "event_ids": ["event-1", "event-2"],
+            "source_provenance": [
+                {
+                    "event_id": "event-1",
+                    "original_source_id": "source-record-001",
+                    "original_event_reference": "Security.evtx:record-001",
+                },
+                {
+                    "event_id": "event-2",
+                    "original_source_id": "source-record-002",
+                    "original_event_reference": "Security.evtx:record-002",
+                },
+            ],
+        }
+    ]
+    report = build_json_report([], [alert], correlations)
     assert report["report_version"] == "2.0"
+    serialized = json.loads(json.dumps(report))
+    provenance = serialized["correlations"][0]["source_provenance"]
+    assert provenance[0]["original_source_id"] == "source-record-001"
+    assert provenance[0]["original_event_reference"] == (
+        "Security.evtx:record-001"
+    )
+    assert provenance[1]["original_source_id"] == "source-record-002"
+    assert provenance[1]["original_event_reference"] == (
+        "Security.evtx:record-002"
+    )
     html = build_html_report(report)
     assert "<html" in html.lower()
     assert "Test detection" in html
+    assert "Security.evtx:record-001" in html
+    assert "Security.evtx:record-002" in html
 
 
 def test_evaluation_metrics():

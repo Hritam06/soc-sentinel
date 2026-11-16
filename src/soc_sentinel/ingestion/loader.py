@@ -14,7 +14,7 @@ def load_event(data: dict[str, Any]) -> SecurityEvent:
     if not event_data.get("event_id"):
         event_data["event_id"] = str(uuid4())
 
-    return normalize_event(event_data)
+    return normalize_event(event_data, original_event=data)
 
 
 def load_events(data: list[dict[str, Any]]) -> list[SecurityEvent]:

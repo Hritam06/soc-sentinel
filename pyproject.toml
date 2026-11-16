@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "soc-sentinel"
-version = "2.0.0"
+version = "3.0.0"
 description = "Security event detection and incident analysis platform"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -18,3 +18,6 @@ where = ["src"]
 
 [project.scripts]
 soc-sentinel = "soc_sentinel.cli:main"
+
+[tool.pytest.ini_options]
+norecursedirs = [".*", "_darcs", "build", "dist", "CVS", "venv", "node_modules", "soc-sentinel"]

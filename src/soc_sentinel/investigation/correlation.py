@@ -10,6 +10,20 @@ def _event_reference(event: SecurityEvent) -> str:
     return event.event_id or f"{event.source}:{event.timestamp.isoformat()}"
 
 
+def _source_provenance(
+    events: list[SecurityEvent],
+) -> list[dict[str, str | None]]:
+    """Link original source identifiers to contributing internal event IDs."""
+    return [
+        {
+            "event_id": event.event_id,
+            "original_source_id": event.original_source_id,
+            "original_event_reference": event.original_event_reference,
+        }
+        for event in events
+    ]
+
+
 def correlate_security_events(
     events: list[SecurityEvent],
     window_minutes: int = 10,
@@ -52,6 +66,7 @@ def correlate_security_events(
                     "start_time": min(item.timestamp for item in previous).isoformat(),
                     "end_time": event.timestamp.isoformat(),
                     "event_ids": list(refs),
+                    "source_provenance": _source_provenance(previous + [event]),
                     "explanation": "A successful login followed recent failures for the same account.",
                 })
 
@@ -82,6 +97,7 @@ def correlate_security_events(
                     "start_time": failure.timestamp.isoformat(),
                     "end_time": max(item.timestamp for item in network_or_dns).isoformat(),
                     "event_ids": list(refs),
+                    "source_provenance": _source_provenance([failure] + network_or_dns),
                     "explanation": "Authentication failures were followed by network or DNS activity from the same source.",
                 })
 
@@ -110,6 +126,7 @@ def correlate_security_events(
                     "start_time": failure.timestamp.isoformat(),
                     "end_time": max(item.timestamp for item in related).isoformat(),
                     "event_ids": list(refs),
+                    "source_provenance": _source_provenance(related),
                     "explanation": "One source IP generated authentication failures for multiple accounts.",
                 })
 
@@ -137,6 +154,7 @@ def correlate_security_events(
                 "start_time": failure.timestamp.isoformat(),
                 "end_time": max(item.timestamp for item in related).isoformat(),
                 "event_ids": list(refs),
+                "source_provenance": _source_provenance([failure] + related),
                 "explanation": "Authentication failure was followed by connections to multiple destination hosts.",
             })
 

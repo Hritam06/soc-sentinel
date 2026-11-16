@@ -1,11 +1,6 @@
 {
-  "dataset_version": "1.0",
-  "description": "Deterministic synthetic SOC Sentinel evaluation dataset.",
-  "limitations": [
-    "Synthetic events do not represent real-world attack prevalence.",
-    "Ground-truth labels describe generated scenarios, not confirmed malicious activity.",
-    "Detection performance on this dataset does not establish production effectiveness."
-  ],
+  "dataset_version": "1.1",
+  "description": "Deterministic synthetic attack scenarios and benign lookalike events.",
   "labels": [
     {
       "event_id": "auth-brute-0",
@@ -211,6 +206,36 @@
       "event_id": "benign-4",
       "ground_truth": "benign",
       "scenario": "benign"
+    },
+    {
+      "event_id": "benign-auth-isolated-failure",
+      "ground_truth": "benign",
+      "scenario": "benign_lookalike"
+    },
+    {
+      "event_id": "benign-network-low-fanout-0",
+      "ground_truth": "benign",
+      "scenario": "benign_lookalike"
+    },
+    {
+      "event_id": "benign-network-low-fanout-1",
+      "ground_truth": "benign",
+      "scenario": "benign_lookalike"
+    },
+    {
+      "event_id": "benign-network-low-fanout-2",
+      "ground_truth": "benign",
+      "scenario": "benign_lookalike"
+    },
+    {
+      "event_id": "benign-dns-normal-query",
+      "ground_truth": "benign",
+      "scenario": "benign_lookalike"
     }
+  ],
+  "limitations": [
+    "Synthetic events do not represent real-world attack prevalence.",
+    "Ground-truth labels describe generated scenarios, not confirmed malicious activity.",
+    "Detection performance on this dataset does not establish production effectiveness."
   ]
 }

@@ -10,8 +10,11 @@ from soc_sentinel.investigation.correlation import correlate_login_failures
 from soc_sentinel.normalization.normalizer import normalize_event
 from soc_sentinel.ingestion.loader import load_events
 from soc_sentinel.detection.rules import (
-    detect_authentication, detect_network, detect_suspicious_dns,
+    detect_authentication_alerts,
+    detect_network_alerts,
+    detect_suspicious_dns_alerts,
 )
+from soc_sentinel.detection.catalog import BUILTIN_RULES
 from soc_sentinel.investigation.correlation import correlate_security_events
 from soc_sentinel.reporting.v2_report import build_json_report
 from soc_sentinel.alerts.models import SecurityAlert
@@ -110,23 +113,26 @@ def main() -> None:
             ]
 
             settings = config.detection
+            authentication_detections = detect_authentication_alerts(
+                eligible,
+                brute_force_threshold=settings.brute_force_threshold,
+                password_spray_threshold=settings.password_spray_threshold,
+                window_minutes=settings.authentication_window_minutes,
+            )
+            network_detections = detect_network_alerts(
+                eligible,
+                port_scan_threshold=settings.port_scan_threshold,
+                fanout_threshold=settings.connection_fanout_threshold,
+                window_minutes=settings.network_window_minutes,
+            )
+            dns_detections = detect_suspicious_dns_alerts(
+                eligible,
+                minimum_length=settings.dns_minimum_length,
+            )
             detections = (
-                detect_authentication(
-                    eligible,
-                    brute_force_threshold=settings.brute_force_threshold,
-                    password_spray_threshold=settings.password_spray_threshold,
-                    window_minutes=settings.authentication_window_minutes,
-                )
-                + detect_network(
-                    eligible,
-                    port_scan_threshold=settings.port_scan_threshold,
-                    fanout_threshold=settings.connection_fanout_threshold,
-                    window_minutes=settings.network_window_minutes,
-                )
-                + detect_suspicious_dns(
-                    eligible,
-                    minimum_length=settings.dns_minimum_length,
-                )
+                authentication_detections
+                + network_detections
+                + dns_detections
             )
 
             rule_ids = {
@@ -139,34 +145,84 @@ def main() -> None:
                 "connection_fanout": "NET-002",
                 "suspicious_dns_query": "DNS-001",
             }
+            catalogue = {rule.rule_id: rule for rule in BUILTIN_RULES}
+            events_by_id = {event.event_id: event for event in eligible}
+
             manager = AlertManager(
                 window_minutes=config.suppression.window_minutes,
                 enabled=config.suppression.enabled,
             )
-            for name in detections:
-                rule_id = rule_ids.get(name, name.upper())
-                severity = config.severity.get(rule_id, "medium")
+
+            for detection in detections:
+                rule_id = rule_ids[detection.rule]
+                definition = catalogue[rule_id]
+                matched_events = [
+                    events_by_id[event_id]
+                    for event_id in detection.event_ids
+                    if event_id in events_by_id
+                ]
+                source_entities = tuple(sorted({
+                    value
+                    for event in matched_events
+                    for value in (event.source_ip, event.host)
+                    if value
+                }))
+                target_entities = tuple(sorted({
+                    value
+                    for event in matched_events
+                    for value in (
+                        event.username,
+                        event.destination_ip,
+                        event.destination_hostname,
+                        event.dns_query,
+                    )
+                    if value
+                }))
                 manager.add(SecurityAlert(
                     rule_id=rule_id,
-                    rule_name=name,
-                    severity=severity,
-                    confidence=0.55,
-                    explanation=(
-                        "A detection heuristic matched the supplied event batch. "
-                        "The current detector does not expose triggering event IDs; "
-                        "investigate source evidence before drawing conclusions."
+                    rule_name=definition.name,
+                    severity=config.severity.get(
+                        definition.severity, definition.severity
+                    ),
+                    confidence=definition.confidence,
+                    explanation=detection.message,
+                    event_ids=detection.event_ids,
+                    source_entities=source_entities,
+                    target_entities=target_entities,
+                    triggering_conditions=detection.evidence,
+                    evidence=tuple(
+                        {
+                            "event_id": event.event_id,
+                            "original_source_id": event.original_source_id,
+                            "original_event_reference": event.original_event_reference,
+                            "event_timestamp": event.timestamp.isoformat(),
+                            "ingestion_timestamp": event.ingestion_timestamp.isoformat(),
+                            "parser_version": event.parser_version,
+                            "schema_version": event.schema_version,
+                            "raw_event": dict(event.raw_event),
+                        }
+                        for event in matched_events
                     ),
                     recommended_actions=(
-                        "Review the relevant source events.",
-                        "Validate the activity with the system owner.",
+                        "Review the triggering source events and validate the activity.",
+                        "Investigate the involved accounts, hosts and network indicators.",
                     ),
                 ))
 
             alerts = list(manager.alerts) if hasattr(manager, "alerts") else []
             if not alerts:
                 alerts = list(getattr(manager, "_alerts", {}).values())
-            correlations_v2 = correlate_security_events(eligible)
-            risk = assess_risk(alerts, event_count=len(events))
+            correlations_v2 = correlate_security_events(
+                eligible,
+                window_minutes=config.investigation.correlation_window_minutes,
+            )
+            risk = assess_risk(
+                alerts,
+                event_count=len(events),
+                high_asset_bonus=config.investigation.high_asset_bonus,
+                critical_asset_bonus=config.investigation.critical_asset_bonus,
+                progression_bonus_max=config.investigation.progression_bonus_max,
+            )
             report = build_json_report(events, alerts, correlations_v2, risk)
             print(json.dumps(report, indent=2, sort_keys=True))
             return

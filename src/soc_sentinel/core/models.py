@@ -27,6 +27,11 @@ class SecurityEvent(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
     event_id: str | None = Field(default=None, min_length=1)
+    original_source_id: str | None = Field(default=None, min_length=1)
+    original_event_reference: str | None = Field(default=None, min_length=1)
+    ingestion_timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    parser_version: str = Field(default="1.0.0", min_length=1)
+    schema_version: str = Field(default="1.0.0", min_length=1)
     timestamp: datetime
     source: str = Field(min_length=1)
     event_type: str = Field(min_length=1)
@@ -54,7 +59,7 @@ class SecurityEvent(BaseModel):
     metadata: dict[str, Any] = Field(default_factory=dict)
     raw_event: dict[str, Any] = Field(default_factory=dict)
 
-    @field_validator("timestamp")
+    @field_validator("timestamp", "ingestion_timestamp")
     @classmethod
     def normalize_timestamp(cls, value: datetime) -> datetime:
         if value.tzinfo is None:

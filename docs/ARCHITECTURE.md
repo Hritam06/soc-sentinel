@@ -20,4 +20,7 @@
 
 ## Current limitation
 
-Configuration enforcement across every detection path remains future integration work.
+Configuration is validated centrally and supplied to the supported CLI detection and investigation paths. Environment overrides use the `SOC_SENTINEL__` prefix and are subject to strict configuration validation.
+
+
+The V3.0.0 pipeline carries event-level provenance into supported alert results. Alert aggregation retains associated event identifiers and triggering conditions. Investigation correlation records supported relationships between authentication and network activity, while risk scoring exposes its component contributions. Asset criticality and progression are explicit inputs rather than automatically inferred facts.

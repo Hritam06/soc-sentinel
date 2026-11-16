@@ -11,8 +11,8 @@
     with a lightweight CLI, configurable heuristics, structured alerts, and reports.
   </p>
   <p>
-    <a href="https://github.com/Hritam06/soc-sentinel/releases/tag/v2.0.0">
-      <img src="https://img.shields.io/badge/release-v2.0.0-216e39" alt="Latest release v2.0.0">
+    <a href="https://github.com/Hritam06/soc-sentinel/releases/tag/v3.0.0">
+      <img src="https://img.shields.io/badge/release-v3.0.0-216e39" alt="Latest release v3.0.0">
     </a>
     <a href="https://github.com/Hritam06/soc-sentinel/actions/workflows/tests.yml">
       <img src="https://github.com/Hritam06/soc-sentinel/actions/workflows/tests.yml/badge.svg" alt="Tests">
@@ -26,13 +26,16 @@
     <a href="#quick-start">Quick start</a> ·
     <a href="#detection-coverage">Detection coverage</a> ·
     <a href="#configuration">Configuration</a> ·
-    <a href="https://github.com/Hritam06/soc-sentinel/releases/tag/v2.0.0">Download v2.0.0</a>
+    <a href="https://github.com/Hritam06/soc-sentinel/releases/tag/v3.0.0">Download v3.0.0</a>
   </p>
 </div>
 
 ---
 
 ## Overview
+
+
+Version 3.0.0 extends the existing SOC Sentinel pipeline with event-level alert provenance and traceability, labelled synthetic detection evaluation, and integrated configuration and investigation controls. The existing command-line compatibility path is retained. Evaluation results are based on controlled synthetic scenarios and do not establish production detection performance.
 
 SOC Sentinel is a defensive security-monitoring project for ingesting event data, identifying suspicious patterns, correlating related activity, and producing investigation reports.
 
@@ -124,7 +127,7 @@ SOC Sentinel keeps the original CLI path as the default. Add `--v2` to opt into 
 | v1-compatible JSON | `soc-sentinel --file events.jsonl --format json` | JSON with reports and login-failure correlations |
 | v2 | `soc-sentinel --file events.jsonl --v2` | Structured v2 JSON investigation report |
 
-The existing **v1.0.0** GitHub release remains available. See the [v2.0.0 release notes](https://github.com/Hritam06/soc-sentinel/releases/tag/v2.0.0).
+The existing **v1.0.0** GitHub release remains available. See the [v2.0.0 release notes](https://github.com/Hritam06/soc-sentinel/releases/tag/v3.0.0).
 
 ## Detection coverage
 
@@ -203,6 +206,8 @@ The reporting module also provides helpers to build and write JSON and HTML repo
 
 HTML report data is escaped before rendering.
 
+V3.0.0 adds event identifiers and evidence context to supported alert results, together with source and target entity context, triggering conditions, and recommended actions where supplied by the detection path. Investigation correlation records supported relationships between authentication and network activity. Risk assessments expose a score breakdown; asset criticality and attack progression remain explicit inputs and are not inferred automatically by the CLI.
+
 ## Evaluation and tests
 
 The repository includes a labelled synthetic dataset under `datasets/synthetic/`:
@@ -224,6 +229,8 @@ python -m pytest -q tests/ --import-mode=importlib
 ```
 
 The v2.0.0 release passed **123 local tests**. GitHub Actions also passed on **Python 3.11 and 3.12**.
+
+The V3.0.0 synthetic evaluation uses 46 labelled events and evaluates six detection rules using event-level matching. Its results describe only the provided synthetic scenarios. Aggregate true-negative counts are summed across rule-level classifications and must not be interpreted as a count of distinct benign events. The local regression suite passed 161 tests on Python 3.14.8; Python 3.11 and 3.12 CI results must be verified separately.
 
 ### How to interpret the evaluation
 
@@ -280,3 +287,11 @@ Issues and pull requests are welcome. For changes to detection logic, include fo
 ## License
 
 SOC Sentinel is released under the [MIT License](LICENSE).
+
+## V3.0.0 Evaluation Notes
+
+The V3.0.0 synthetic evaluation uses 46 labelled events and evaluates six detection rules using event-level matching. Results describe only the supplied synthetic scenarios. Aggregate true-negative counts are summed across rule-level classifications and must not be interpreted as a count of distinct benign events. Synthetic metrics do not establish production detection effectiveness.
+
+## V3.0.0 Investigation Notes
+
+Supported alert results include event-level provenance and evidence context. Investigation correlation records supported relationships between authentication and network activity. Risk assessments expose a score breakdown. Asset criticality and attack progression remain explicit inputs and are not inferred automatically by the CLI.
